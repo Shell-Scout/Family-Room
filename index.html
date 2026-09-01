@@ -2,594 +2,568 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILY ARCHIVE // COZY ROOM</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Семейный Архив • Семейное дело</title>
+    <link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
         :root {
-            --room-bg: #0d110f;
-            --desk-wood: #16120e;
-            --paper-bg: #f4eee3;
-            --paper-border: #c4bcaf;
-            --paper-shadow: 0 12px 30px rgba(0, 0, 0, 0.5), 0 2px 4px rgba(0,0,0,0.2);
-            --accent-green: #3a6b4e;
-            --danger: #b33939;
+            --bg-color: #121518;
+            --board-color: #1c2128;
+            --card-bg: #2d333b;
+            --text-main: #adbac7;
+            --text-bright: #f0f6fc;
+            --accent-red: #da3633;
+            --accent-yellow: #d29922;
+            --accent-blue: #58a6ff;
+            --border-color: #444c56;
         }
 
-        body, html {
+        * {
+            box-sizing: border-box;
             margin: 0;
             padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Погодные эффекты: Дождь за окном */
+        .rain-container {
+            position: fixed;
+            top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
-            background-color: var(--room-bg);
-            color: #e2f2e5;
-            font-family: 'Courier New', Courier, monospace;
-            overflow: hidden;
-            user-select: none;
-        }
-
-        /* Уютная теплая лампа */
-        #lamp-light {
-            position: fixed;
-            inset: 0;
-            pointer-events: none;
-            z-index: 99;
-            background: radial-gradient(circle 350px at 50% 30%, rgba(255, 215, 150, 0.12) 0%, rgba(8, 12, 10, 0.4) 80%);
-        }
-
-        /* Дождь за окном */
-        #rain-container {
-            position: fixed;
-            inset: 0;
             pointer-events: none;
             z-index: 1;
+            opacity: 0.3;
         }
         .raindrop {
             position: absolute;
-            background: rgba(180, 200, 220, 0.35);
+            background: linear-gradient(transparent, rgba(88, 166, 255, 0.6));
             width: 1px;
             height: 20px;
-            opacity: 0.6;
-            animation: fallRain linear infinite;
+            animation: fall linear infinite;
         }
-        @keyframes fallRain {
-            0% { transform: translateY(-30px); }
+        @keyframes fall {
+            0% { transform: translateY(-20px); }
             100% { transform: translateY(105vh); }
         }
 
-        /* Комната / Подоконник и Кот */
-        #room-scene {
-            position: fixed;
-            inset: 0;
+        /* Основной контейнер */
+        .app-container {
+            position: relative;
             z-index: 2;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            background: radial-gradient(circle at 50% 40%, #152219 0%, #090d0b 100%);
-            transition: opacity 0.8s ease;
         }
 
-        .window-frame {
-            position: absolute;
-            top: 40px;
-            width: 280px;
-            height: 180px;
-            border: 4px solid #1f3325;
-            border-radius: 4px;
-            background: #060a08;
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+        /* Шапка */
+        header {
             display: flex;
-            align-items: flex-end;
-            justify-content: center;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--board-color);
+            border: 1px solid var(--border-color);
+            padding: 15px 25px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.4);
         }
 
-        /* Спящий кот на подоконнике */
-        .cat {
-            font-size: 1.8rem;
-            margin-bottom: 5px;
-            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8));
-            animation: breatheCat 4s ease-in-out infinite alternate;
-        }
-        @keyframes breatheCat {
-            0% { transform: scale(1); }
-            100% { transform: scale(1.04); }
+        .header-title h1 {
+            font-family: 'Special Elite', cursive;
+            color: var(--text-bright);
+            font-size: 1.5rem;
+            letter-spacing: 1px;
         }
 
-        .room-title {
-            margin-top: 160px;
+        .header-title p {
             font-size: 0.85rem;
-            letter-spacing: 3px;
-            color: #8fa897;
-            text-align: center;
+            color: var(--text-main);
+            margin-top: 3px;
         }
 
-        /* Книга / Доска на столе для входа */
-        .archive-book {
-            margin-top: 25px;
-            background: #1e3023;
-            border: 2px solid #3a6b4e;
-            padding: 20px 40px;
-            border-radius: 4px;
+        .header-controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        /* Кнопки и элементы управления */
+        button, .btn {
+            background-color: var(--card-bg);
+            color: var(--text-bright);
+            border: 1px solid var(--border-color);
+            padding: 8px 16px;
+            border-radius: 6px;
             cursor: pointer;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.6);
-            text-align: center;
-            transition: all 0.2s;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            font-family: 'Inter', sans-serif;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
         }
-        .archive-book:hover {
-            background: #284230;
-            transform: scale(1.05);
-            box-shadow: 0 15px 35px rgba(58,107,78,0.4);
+
+        button:hover {
+            background-color: #373e47;
+            border-color: #606770;
         }
-        .archive-book h3 {
-            margin: 0;
+
+        button.primary {
+            background-color: #238636;
+            border-color: #2ea043;
+        }
+        button.primary:hover {
+            background-color: #2ea043;
+        }
+
+        /* Уютный угол: Кот и Звуки */
+        .cozy-corner {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            background: rgba(0,0,0,0.2);
+            padding: 6px 12px;
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+        }
+
+        .cat-widget {
+            cursor: pointer;
+            font-size: 1.2rem;
+            user-select: none;
+            transition: transform 0.2s;
+        }
+        .cat-widget:hover {
+            transform: scale(1.2);
+        }
+
+        /* Рабочая зона детективной доски */
+        .board-workspace {
+            flex: 1;
+            background: var(--board-color);
+            border: 2px dashed var(--border-color);
+            border-radius: 12px;
+            padding: 25px;
+            position: relative;
+            min-height: 600px;
+            box-shadow: inset 0 0 40px rgba(0,0,0,0.6);
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            align-content: start;
+        }
+
+        /* Карточки на доске */
+        .archive-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            position: relative;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .archive-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.7);
+            border-color: var(--accent-blue);
+        }
+
+        .archive-card::before {
+            content: '';
+            position: absolute;
+            top: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 12px;
+            height: 12px;
+            background: var(--accent-red);
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
+        }
+
+        .card-title {
+            font-weight: 600;
+            color: var(--text-bright);
+            font-size: 1rem;
+        }
+
+        .card-date {
+            font-size: 0.75rem;
+            color: var(--accent-yellow);
+            font-family: 'Special Elite', cursive;
+        }
+
+        .card-body {
             font-size: 0.9rem;
-            letter-spacing: 2px;
-            color: #e2f2e5;
+            line-height: 1.4;
+            color: var(--text-main);
+            word-break: break-word;
+        }
+
+        .card-footer {
+            margin-top: 12px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+
+        .card-footer button {
+            padding: 4px 8px;
+            font-size: 0.75rem;
+        }
+
+        /* Модальные окна */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            z-index: 100;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal {
+            background: var(--board-color);
+            border: 1px solid var(--border-color);
+            width: 100%;
+            max-width: 500px;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.8);
+        }
+
+        .modal h2 {
+            font-family: 'Special Elite', cursive;
+            color: var(--text-bright);
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            margin-bottom: 5px;
+            color: var(--text-bright);
+        }
+
+        .form-group input, .form-group textarea {
+            width: 100%;
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            padding: 10px;
+            border-radius: 6px;
+            color: var(--text-bright);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.95rem;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
         }
 
         /* Авторизация */
         #auth-screen {
             position: fixed;
             inset: 0;
-            background: rgba(9, 13, 11, 0.92);
+            background: rgba(9, 13, 11, 0.95);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             z-index: 1000;
         }
+
         .auth-box {
-            background: #17241c;
-            border: 2px solid #354a3c;
-            padding: 35px;
-            border-radius: 4px;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.8);
+            background: var(--board-color);
+            border: 1px solid var(--border-color);
+            padding: 30px;
+            border-radius: 10px;
             text-align: center;
-            width: 300px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.8);
+            max-width: 360px;
+            width: 100%;
         }
+
         .auth-box h2 {
-            margin-top: 0;
-            font-size: 0.9rem;
-            letter-spacing: 2px;
-            color: #5ea877;
+            font-family: 'Special Elite', cursive;
+            color: var(--text-bright);
+            margin-bottom: 10px;
+        }
+
+        .auth-box p {
+            font-size: 0.85rem;
             margin-bottom: 20px;
         }
+
         .auth-box input {
             width: 100%;
-            background: #0d1410;
-            border: 1px solid #354a3c;
             padding: 10px;
-            color: #e2f2e5;
-            font-family: inherit;
-            font-size: 1rem;
-            text-align: center;
-            border-radius: 3px;
-            outline: none;
-            box-sizing: border-box;
-        }
-        .auth-error {
-            color: var(--danger);
-            font-size: 0.7rem;
-            margin-top: 10px;
-            height: 15px;
-        }
-
-        /* Рабочий стол с карточками (скрыт до входа) */
-        #workbench-screen {
-            position: fixed;
-            inset: 0;
-            background: var(--desk-wood);
-            display: none;
-            z-index: 10;
-        }
-
-        #desk-surface {
-            position: fixed;
-            inset: 35px;
-            background-color: #18261e;
-            background-image: 
-                linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
-            background-size: 40px 40px;
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
             border-radius: 6px;
-            box-shadow: 0 30px 70px rgba(0,0,0,0.8), inset 0 0 100px rgba(0,0,0,0.4);
-            overflow: hidden;
-            cursor: grab;
-        }
-        #desk-surface.scissors-active {
-            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="%23b33939" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg>') 12 12, auto !important;
-        }
-
-        #world {
-            position: absolute;
-            width: 6000px;
-            height: 6000px;
-            top: 0;
-            left: 0;
-            transform-origin: 0 0;
+            color: var(--text-bright);
+            text-align: center;
+            font-size: 1.2rem;
+            letter-spacing: 3px;
+            margin-bottom: 15px;
         }
 
-        /* Элементы доски */
-        #connections-layer {
-            position: absolute;
-            inset: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
+        .error-msg {
+            color: var(--accent-red);
+            font-size: 0.8rem;
+            margin-top: 10px;
+            min-height: 15px;
         }
-        .connection-line {
-            stroke: #4d8c67;
-            stroke-width: 3;
-            stroke-dasharray: 6;
-            stroke-opacity: 0.95;
-            pointer-events: stroke;
-            cursor: pointer;
-        }
-        .connection-line:hover { stroke: var(--danger); stroke-width: 5; }
-
-        /* Карточка */
-        .card {
-            position: absolute;
-            width: 260px;
-            background: var(--paper-bg);
-            border: 1px solid var(--paper-border);
-            border-radius: 3px;
-            z-index: 2;
-            box-shadow: var(--paper-shadow);
-            cursor: grab;
-        }
-        .card.connecting-source {
-            border: 2px dashed #e74c3c !important;
-            box-shadow: 0 0 15px rgba(231, 76, 60, 0.6);
-        }
-        .card::before {
-            content: '';
-            position: absolute;
-            top: -12px; left: 30px;
-            width: 14px; height: 30px;
-            border: 3px solid #9caba1; border-radius: 7px;
-            background: #e1eae4; box-shadow: 0 3px 5px rgba(0,0,0,0.3);
-            pointer-events: none; z-index: 5;
-        }
-        .card-header {
-            background: rgba(196, 188, 175, 0.6);
-            padding: 6px 10px; font-size: 0.65rem;
-            border-bottom: 1px solid var(--paper-border);
-            display: flex; justify-content: space-between; align-items: center;
-            color: var(--accent-green); font-weight: bold;
-        }
-        .card-body { padding: 10px; color: #111714; }
-        .card-img-container {
-            width: 100%; height: 120px; background: #e4ded4;
-            border: 1px solid var(--paper-border); margin-bottom: 8px;
-            display: flex; align-items: center; justify-content: center;
-            overflow: hidden; border-radius: 2px; cursor: zoom-in;
-        }
-        .card-img-container img { width: 100%; height: 100%; object-fit: cover; }
-        .data-row { margin-bottom: 4px; font-size: 0.7rem; }
-        .data-label { color: #55665b; font-size: 0.55rem; text-transform: uppercase; font-weight: bold; }
-        .data-value { font-weight: bold; }
-        .expand-toggle { font-size: 0.6rem; color: var(--accent-green); cursor: pointer; text-align: right; margin-top: 6px; text-decoration: underline; font-weight: bold; }
-
-        /* Верхняя панель */
-        .top-bar {
-            position: fixed; top: 50px; left: 55px; right: 55px;
-            display: flex; justify-content: space-between; align-items: center;
-            z-index: 15; pointer-events: none;
-        }
-        .top-buttons { display: flex; gap: 10px; pointer-events: auto; }
-        .btn-action {
-            background: #4d8c67; color: #fff; border: none; padding: 9px 14px;
-            font-family: inherit; font-size: 0.7rem; cursor: pointer; border-radius: 3px;
-            letter-spacing: 1px; box-shadow: 0 4px 10px rgba(0,0,0,0.4);
-        }
-        .btn-action:hover { background: #3a6b4e; }
-        .btn-scissors { background: #2b3b32; border: 1px solid #4d8c67; color: #a3c9b0; }
-        .btn-scissors.active { background: #b33939; border-color: #e74c3c; color: #fff; }
-
-        #top-hint {
-            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
-            background: #b33939; color: white; padding: 8px 16px; border-radius: 4px;
-            font-size: 0.75rem; z-index: 300; display: none;
-        }
-
-        /* Модалки */
-        #modal-overlay, #image-modal {
-            position: fixed; inset: 0; background: rgba(0, 0, 0, 0.75);
-            display: none; align-items: center; justify-content: center; z-index: 200;
-            backdrop-filter: blur(4px);
-        }
-        .modal {
-            background: #f4eee3; border: 3px solid #3a6b4e; padding: 30px; width: 420px;
-            border-radius: 4px; color: #111714;
-        }
-        .modal input, .modal textarea {
-            width: 100%; background: #fffdf9; border: 1px solid #c4bcaf;
-            padding: 8px; margin-bottom: 10px; font-family: inherit; font-size: 0.8rem; box-sizing: border-box;
-        }
-        .modal textarea { height: 100px; resize: vertical; }
-        #image-modal img { max-width: 85vw; max-height: 85vh; border: 4px solid #f4eee3; }
     </style>
 </head>
 <body>
 
-    <div id="lamp-light"></div>
-    <div id="rain-container"></div>
-
+    <!-- Экран авторизации -->
     <div id="auth-screen">
         <div class="auth-box">
-            <h2>ДОСТУП К АРХИВУ</h2>
-            <input type="password" id="pass-input" placeholder="ВВЕДИТЕ КОД" autofocus>
-            <div class="auth-error" id="auth-error"></div>
+            <h2>СЕКРЕТНЫЙ ДОСТУП</h2>
+            <p>Введите код дела семьи для расшифровки архива:</p>
+            <input type="password" id="auth-pass" placeholder="••••" maxlength="10">
+            <button class="primary" style="width: 100%; justify-content: center;" onclick="checkAuth()">Открыть дело</button>
+            <div class="error-msg" id="auth-error"></div>
         </div>
     </div>
 
-    <div id="room-scene">
-        <div class="window-frame">
-            <div class="cat">🐈‍⬛</div>
-        </div>
-        <div class="room-title">ТИХИЙ ВЕЧЕР В УБЕЖИЩЕ</div>
-        <div class="archive-book" onclick="enterArchive()">
-            <h3>📖 ОТКРЫТЬ СЕМЕЙНЫЙ АРХИВ</h3>
-        </div>
+    <!-- Погодный дождь -->
+    <div class="rain-container" id="rain"></div>
+
+    <div class="app-container">
+        <!-- Шапка -->
+        <header>
+            <div class="header-title">
+                <h1>ДЕЛО №2026: СЕМЕЙНЫЙ АРХИВ</h1>
+                <p>Оперативная база данных клана • Доска расследований</p>
+            </div>
+            <div class="header-controls">
+                <div class="cozy-corner">
+                    <span class="cat-widget" id="cat" title="Погладить кота">🐈</span>
+                    <button onclick="toggleAudio()" id="audio-btn" title="Включить фоновый звук дождя">🌧️ Звук</button>
+                </div>
+                <button class="primary" onclick="openModal()">+ Новая улика</button>
+            </div>
+        </header>
+
+        <!-- Рабочая доска с карточками -->
+        <main class="board-workspace" id="board">
+            <!-- Карточки добавляются динамически -->
+        </main>
     </div>
 
-    <div id="workbench-screen">
-        <div id="top-hint">РЕЖИМ СВЯЗИ: НАЖМИТЕ НА КАРТОЧКУ ДЛЯ НИТИ</div>
-        <div class="top-bar">
-            <div style="background:#17241c; padding:8px 14px; border:1px solid #354a3c; border-radius:3px; font-size:0.75rem;">
-                АРХИВ // СЕМЬЯ
-            </div>
-            <div class="top-buttons">
-                <button id="scissors-btn" class="btn-action btn-scissors" onclick="toggleScissors()">✂ НОЖНИЦЫ</button>
-                <button class="btn-action" onclick="openCreateModal()">+ ДОБАВИТЬ</button>
-                <button class="btn-action" style="background:#2b3b32;" onclick="exitArchive()">🚪 В КОМНАТУ</button>
-            </div>
-        </div>
-        <div id="desk-surface">
-            <div id="world">
-                <svg id="connections-layer"></svg>
-                <div id="cards-container"></div>
-            </div>
-        </div>
-    </div>
-
-    <div id="modal-overlay">
+    <!-- Модальное окно создания улики -->
+    <div class="modal-overlay" id="modal">
         <div class="modal">
-            <h3 style="margin-top:0; color:#3a6b4e;">КАРТОЧКА СУБЪЕКТА</h3>
-            <input type="hidden" id="inp-id">
-            <label style="font-size:0.65rem; color:#55665b; font-weight:bold;">ИМЯ / ФИО</label>
-            <input type="text" id="inp-name" placeholder="Имя">
-            <label style="font-size:0.65rem; color:#55665b; font-weight:bold;">РОЛЬ / СТАТУС</label>
-            <input type="text" id="inp-role" placeholder="Роль">
-            <label style="font-size:0.65rem; color:#55665b; font-weight:bold;">ФОТОГРАФИЯ</label>
-            <input type="file" id="inp-file" accept="image/*">
-            <label style="font-size:0.65rem; color:#55665b; font-weight:bold;">ОПИСАНИЕ</label>
-            <textarea id="inp-desc" placeholder="Информация..."></textarea>
-            <div style="display:flex; justify-content:space-between; margin-top:10px;">
-                <button class="btn-action" style="background:#c4bcaf; color:#111;" onclick="closeModal()">Закрыть</button>
-                <button class="btn-action" onclick="saveCard()">Сохранить</button>
+            <h2>Добавить новую запись</h2>
+            <div class="form-group">
+                <label>Заголовок / Имя объекта</label>
+                <input type="text" id="card-title" placeholder="Например: План на дачу">
+            </div>
+            <div class="form-group">
+                <label>Содержимое архива</label>
+                <textarea id="card-desc" placeholder="Опишите подробности, пароли или важные заметки..."></textarea>
+            </div>
+            <div class="modal-buttons">
+                <button onclick="closeModal()">Отмена</button>
+                <button class="primary" onclick="saveCard()">Прикрепить к доске</button>
             </div>
         </div>
-    </div>
-
-    <div id="image-modal" onclick="this.style.display='none'">
-        <img id="full-image" src="">
     </div>
 
     <script>
-        const ENCRYPTED_PASS = "VklQRVJSMjAyNg==";
-        const passInput = document.getElementById('pass-input');
-        const authError = document.getElementById('auth-error');
-        const roomScene = document.getElementById('room-scene');
-        const workbenchScreen = document.getElementById('workbench-screen');
+        // Настройки и константы
+        const CORRECT_PIN = "2026";
+        const API_URL = ""; // Временно пусто, чтобы не было ошибок 404
 
-        // Создание дождя
+        // Проверка авторизации
+        function checkAuth() {
+            const input = document.getElementById('auth-pass').value;
+            if (input === CORRECT_PIN) {
+                document.getElementById('auth-screen').style.display = 'none';
+                localStorage.setItem('family_auth', 'true');
+                loadCards();
+            } else {
+                document.getElementById('auth-error').textContent = "Неверный код доступа!";
+                document.querySelector('.auth-box').style.animation = 'shake 0.3s';
+                setTimeout(() => document.querySelector('.auth-box').style.animation = '', 300);
+            }
+        }
+
+        // Авто-вход если уже вводили
+        window.addEventListener('DOMContentLoaded', () => {
+            if (localStorage.getItem('family_auth') === 'true') {
+                document.getElementById('auth-screen').style.display = 'none';
+                loadCards();
+            }
+            initRain();
+        });
+
+        // Генерация дождя
         function initRain() {
-            const container = document.getElementById('rain-container');
-            for (let i = 0; i < 30; i++) {
+            const rainContainer = document.getElementById('rain');
+            for (let i = 0; i < 50; i++) {
                 const drop = document.createElement('div');
-                drop.className = 'raindrop';
-                drop.style.left = Math.random() * 100 + 'vw';
-                drop.style.animationDuration = (0.5 + Math.random() * 0.5) + 's';
-                drop.style.animationDelay = (Math.random() * 2) + 's';
-                container.appendChild(drop);
+                drop.classList.add('raindrop');
+                drop.style.left = `${Math.random() * 100}vw`;
+                drop.style.top = `${Math.random() * -100}vh`;
+                drop.style.animationDuration = `${0.8 + Math.random() * 0.8}s`;
+                drop.style.animationDelay = `${Math.random() * 2}s`;
+                rainContainer.appendChild(drop);
             }
         }
-        initRain();
 
-        passInput.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') {
-                try {
-                    if (btoa(passInput.value.trim()) === ENCRYPTED_PASS) {
-                        document.getElementById('auth-screen').style.opacity = '0';
-                        setTimeout(() => { document.getElementById('auth-screen').style.display = 'none'; }, 500);
-                        return;
-                    }
-                } catch (err) {}
-                authError.innerText = "НЕВЕРНЫЙ КОД ДОСТУПА";
-                passInput.value = "";
-                setTimeout(() => { authError.innerText = ""; }, 2000);
-            }
+        // Уютный кот
+        const catPhrases = ["Мур-мур...", "Кот следит за порядком в деле.", "Мяу! Пора пить чай.", "Рядом с архивом тепло и уютно."];
+        document.getElementById('cat').addEventListener('click', () => {
+            const randomPhrase = catPhrases[Math.floor(Math.random() * catPhrases.length)];
+            alert(randomPhrase);
         });
 
-        function enterArchive() {
-            roomScene.style.opacity = '0';
-            setTimeout(() => {
-                roomScene.style.display = 'none';
-                workbenchScreen.style.display = 'block';
-                renderCards();
-            }, 500);
+        // Управление модальным окном
+        function openModal() {
+            document.getElementById('modal').classList.add('active');
+        }
+        function closeModal() {
+            document.getElementById('modal').classList.remove('active');
+            document.getElementById('card-title').value = '';
+            document.getElementById('card-desc').value = '';
         }
 
-        function exitArchive() {
-            workbenchScreen.style.display = 'none';
-            roomScene.style.display = 'flex';
-            roomScene.style.opacity = '1';
-        }
+        // Работа с карточками (Локальное хранилище + готовность к PHP)
+        function loadCards() {
+            const board = document.getElementById('board');
+            board.innerHTML = '';
+            
+            let cards = JSON.parse(localStorage.getItem('family_archive_cards')) || [
+                { id: 1, title: "Добро пожаловать в Архив", desc: "Это ваша общая семейная доска. Добавляйте сюда важную информацию, заметки и пароли.", date: "01.09.2026" }
+            ];
 
-        // Данные доски (сейчас на localStorage, потом легко заменим на облако)
-        let cardsData = JSON.parse(localStorage.getItem('family_cards_data')) || [
-            { id: 'c1', name: 'Майс Вайпер', role: 'Глава', desc: 'Добро пожаловать в архив.', img: '', connections: [], x: 400, y: 300, rotation: -2 }
-        ];
-
-        let panX = 400, panY = 300, isPanning = false, startPanX = 0, startPanY = 0;
-        let connectingFromId = null, scissorsMode = false;
-
-        const world = document.getElementById('world');
-        const deskSurface = document.getElementById('desk-surface');
-        const cardsContainer = document.getElementById('cards-container');
-        const svgLayer = document.getElementById('connections-layer');
-        const topHint = document.getElementById('top-hint');
-        const scissorsBtn = document.getElementById('scissors-btn');
-
-        deskSurface.addEventListener('mousedown', (e) => {
-            if (e.target.closest('.card') || e.target.closest('.modal')) return;
-            isPanning = true; startPanX = e.clientX - panX; startPanY = e.clientY - panY;
-        });
-        window.addEventListener('mousemove', (e) => {
-            if (isPanning) { panX = e.clientX - startPanX; panY = e.clientY - startPanY; world.style.transform = `translate(${panX}px, ${panY}px)`; }
-        });
-        window.addEventListener('mouseup', () => isPanning = false);
-
-        function toggleScissors() {
-            scissorsMode = !scissorsMode; connectingFromId = null; topHint.style.display = 'none';
-            scissorsBtn.classList.toggle('active', scissorsMode);
-            deskSurface.classList.toggle('scissors-active', scissorsMode);
-            renderCards();
-        }
-
-        function startConnecting(id, e) {
-            e.stopPropagation(); if (scissorsMode) toggleScissors();
-            connectingFromId = id; topHint.style.display = 'block'; renderCards();
-        }
-
-        function handleCardClick(id, e) {
-            if (connectingFromId && connectingFromId !== id) {
-                e.stopPropagation();
-                let src = cardsData.find(c => c.id === connectingFromId);
-                if (src && !src.connections.includes(id)) src.connections.push(id);
-                localStorage.setItem('family_cards_data', JSON.stringify(cardsData));
-                connectingFromId = null; topHint.style.display = 'none'; renderCards();
+            if (cards.length === 0) {
+                board.innerHTML = '<p style="color: var(--text-main); grid-column: 1/-1; text-align: center; padding: 40px;">Архив пуст. Прикрепите первую улику!</p>';
+                return;
             }
-        }
 
-        function removeConnection(id1, id2, e) {
-            e.stopPropagation(); if (!scissorsMode) return;
-            cardsData.forEach(c => { if (c.id === id1 || c.id === id2) c.connections = c.connections.filter(t => t !== id1 && t !== id2); });
-            localStorage.setItem('family_cards_data', JSON.stringify(cardsData));
-            updateLines();
-        }
-
-        function openCreateModal() {
-            document.getElementById('inp-id').value = '';
-            document.getElementById('inp-name').value = '';
-            document.getElementById('inp-role').value = '';
-            document.getElementById('inp-desc').value = '';
-            document.getElementById('inp-file').value = '';
-            document.getElementById('modal-overlay').style.display = 'flex';
-        }
-
-        function openEditModal(id, e) {
-            e.stopPropagation();
-            let c = cardsData.find(x => x.id === id);
-            if (!c) return;
-            document.getElementById('inp-id').value = c.id;
-            document.getElementById('inp-name').value = c.name;
-            document.getElementById('inp-role').value = c.role;
-            document.getElementById('inp-desc').value = c.desc;
-            document.getElementById('modal-overlay').style.display = 'flex';
-        }
-
-        function closeModal() { document.getElementById('modal-overlay').style.display = 'none'; }
-
-        function saveCard() {
-            let id = document.getElementById('inp-id').value;
-            let name = document.getElementById('inp-name').value.trim();
-            let role = document.getElementById('inp-role').value.trim();
-            let desc = document.getElementById('inp-desc').value.trim();
-            let file = document.getElementById('inp-file').files[0];
-
-            if (!name) return alert('Введите имя');
-
-            const saveWithImg = (imgData) => {
-                if (id) {
-                    let c = cardsData.find(x => x.id === id);
-                    if (c) { c.name = name; c.role = role; c.desc = desc; if (imgData) c.img = imgData; }
-                } else {
-                    cardsData.push({ id: 'c_' + Date.now(), name, role, desc, img: imgData || '', connections: [], x: 450 - panX, y: 350 - panY, rotation: Math.random()*4-2 });
-                }
-                localStorage.setItem('family_cards_data', JSON.stringify(cardsData));
-                closeModal(); renderCards();
-            };
-
-            if (file) {
-                let reader = new FileReader();
-                reader.onload = (e) => saveWithImg(e.target.result);
-                reader.readAsDataURL(file);
-            } else { saveWithImg(null); }
-        }
-
-        function deleteCard(id, e) {
-            e.stopPropagation();
-            if (confirm('Удалить?')) {
-                cardsData = cardsData.filter(c => c.id !== id);
-                cardsData.forEach(c => c.connections = c.connections.filter(t => t !== id));
-                localStorage.setItem('family_cards_data', JSON.stringify(cardsData));
-                renderCards();
-            }
-        }
-
-        function renderCards() {
-            cardsContainer.innerHTML = '';
-            cardsData.forEach(card => {
-                let div = document.createElement('div');
-                div.className = 'card' + (connectingFromId === card.id ? ' connecting-source' : '');
-                div.style.left = card.x + 'px'; div.style.top = card.y + 'px';
-                div.style.transform = `rotate(${card.rotation || 0}deg)`;
-
-                div.innerHTML = `
+            cards.forEach(card => {
+                const el = document.createElement('div');
+                el.className = 'archive-card';
+                el.innerHTML = `
                     <div class="card-header">
-                        <span>ID: ${card.id.slice(-4)}</span>
-                        <div>
-                            <span style="cursor:pointer; margin-right:5px;" onclick="startConnecting('${card.id}', event)">🔗</span>
-                            <span style="cursor:pointer; color:var(--danger);" onclick="deleteCard('${card.id}', event)">✕</span>
-                        </div>
+                        <span class="card-title">${escapeHtml(card.title)}</span>
+                        <span class="card-date">${card.date}</span>
                     </div>
-                    <div class="card-body">
-                        <div class="card-img-container" ${card.img ? `onclick="document.getElementById('full-image').src='${card.img}'; document.getElementById('image-modal').style.display='flex'; event.stopPropagation();"` : ''}>
-                            ${card.img ? `<img src="${card.img}">` : '<span style="font-size:0.6rem; color:#55665b;">[НЕТ ФОТО]</span>'}
-                        </div>
-                        <div class="data-row"><div class="data-label">Имя</div><div class="data-value">${card.name}</div></div>
-                        <div class="data-row"><div class="data-label">Роль</div><div class="data-value">${card.role}</div></div>
-                        <div class="expand-toggle" onclick="openEditModal('${card.id}', event)">Изменить ▼</div>
+                    <div class="card-body">${escapeHtml(card.desc).replace(/\n/g, '<br>')}</div>
+                    <div class="card-footer">
+                        <button onclick="deleteCard(${card.id})" style="color: var(--accent-red);">Удалить</button>
                     </div>
                 `;
-                div.addEventListener('click', (e) => handleCardClick(card.id, e));
-                cardsContainer.appendChild(div);
+                board.appendChild(el);
             });
-            updateLines();
         }
 
-        function updateLines() {
-            svgLayer.innerHTML = '';
-            let drawn = new Set();
-            cardsData.forEach(card => {
-                card.connections.forEach(targetId => {
-                    let key = [card.id, targetId].sort().join('-');
-                    if (drawn.has(key)) return;
-                    drawn.add(key);
-                    let tCard = cardsData.find(c => c.id === targetId);
-                    let el1 = document.getElementById(card.id), el2 = document.getElementById(targetId);
-                    if (el1 && el2 && tCard) {
-                        let line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-                        line.setAttribute('x1', card.x + 130); line.setAttribute('y1', card.y + 100);
-                        line.setAttribute('x2', tCard.x + 130); line.setAttribute('y2', tCard.y + 100);
-                        line.setAttribute('class', 'connection-line');
-                        line.addEventListener('click', (e) => removeConnection(card.id, targetId, e));
-                        svgLayer.appendChild(line);
-                    }
-                });
-            });
+        function saveCard() {
+            const title = document.getElementById('card-title').value.trim();
+            const desc = document.getElementById('card-desc').value.trim();
+
+            if (!title || !desc) {
+                alert('Заполните название и описание!');
+                return;
+            }
+
+            const now = new Date();
+            const dateStr = String(now.getDate()).padStart(2, '0') + '.' + 
+                            String(now.getMonth() + 1).padStart(2, '0') + '.' + 
+                            now.getFullYear();
+
+            let cards = JSON.parse(localStorage.getItem('family_archive_cards')) || [];
+            const newCard = {
+                id: Date.now(),
+                title,
+                desc,
+                date: dateStr
+            };
+
+            cards.unshift(newCard);
+            localStorage.setItem('family_archive_cards', JSON.stringify(cards));
+
+            closeModal();
+            loadCards();
+        }
+
+        function deleteCard(id) {
+            if (confirm('Точно удалить эту запись из архива?')) {
+                let cards = JSON.parse(localStorage.getItem('family_archive_cards')) || [];
+                cards = cards.filter(c => c.id !== id);
+                localStorage.setItem('family_archive_cards', JSON.stringify(cards));
+                loadCards();
+            }
+        }
+
+        function escapeHtml(text) {
+            const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+            return text.replace(/[&<>"']/g, m => map[m]);
+        }
+
+        // Заглушка аудио
+        let audioActive = false;
+        function toggleAudio() {
+            audioActive = !audioActive;
+            const btn = document.getElementById('audio-btn');
+            if (audioActive) {
+                btn.style.borderColor = 'var(--accent-blue)';
+                btn.textContent = '🔊 Дождь идет';
+            } else {
+                btn.style.borderColor = 'var(--border-color)';
+                btn.textContent = '🌧️ Звук';
+            }
         }
     </script>
 </body>
