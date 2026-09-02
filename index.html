@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="fox">
+    <title>Рабочий стол • Семья</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-canvas: #08090c;
+            --card-bg: #11141a;
+            --border-glow: #00f2fe;
+            --accent-cyan: #00e5ff;
+            --accent-purple: #7928ca;
+            --text-main: #e6edf3;
+            --text-sub: #8b949e;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-canvas);
+            color: var(--text-main);
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        /* ГЛИТЧИ И СКАНЛАЙНЫ ПО КРАЯМ ЭКРАНА */
+        .edge-glitch-overlay {
+            position: fixed; inset: 0; pointer-events: none; z-index: 8000;
+            box-shadow: inset 0 0 90px rgba(0, 242, 254, 0.1), inset 0 0 35px rgba(121, 40, 202, 0.15);
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.01), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.02));
+            background-size: 100% 4px, 6px 100%;
+            animation: edgeFlicker 5s infinite alternate;
+        }
+
+        @keyframes edgeFlicker {
+            0%, 100% { opacity: 0.85; }
+            50% { opacity: 1; box-shadow: inset 0 0 110px rgba(0, 242, 254, 0.16), inset 0 0 45px rgba(121, 40, 202, 0.2); }
+            52% { opacity: 0.5; }
+            54% { opacity: 0.95; }
+        }
+
+        /* КАНВАС ДЛЯ НЕОНОВОГО ШЛЕЙФА МЫШИ */
+        #cursor-canvas {
+            position: fixed; inset: 0; pointer-events: none; z-index: 9999;
+        }
+
+        /* ЭКРАН ВХОДА (ПАРОЛЬ) */
+        #auth-screen {
+            position: fixed; inset: 0; background: #030406;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 10000;
+        }
+        .auth-box {
+            background: rgba(17, 20, 26, 0.95); padding: 40px; border-radius: 12px;
+            border: 1px solid rgba(0, 242, 254, 0.2); text-align: center;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.9), 0 0 30px rgba(0, 242, 254, 0.1); max-width: 360px; width: 100%;
+            backdrop-filter: blur(10px);
+        }
+        .auth-box h2 { 
+            font-family: 'JetBrains Mono', monospace; font-size: 1.1rem; margin-bottom: 6px;
+            color: #f0f6fc; letter-spacing: 2px;
+        }
+        .auth-box p { font-size: 0.75rem; color: var(--text-sub); margin-bottom: 24px; font-family: 'JetBrains Mono', monospace; }
+        .auth-box input {
+            width: 100%; padding: 12px; background: #08090c; border: 1px solid #21262d; color: var(--border-glow);
+            font-family: 'JetBrains Mono', monospace; font-size: 1.4rem; letter-spacing: 6px; text-align: center; margin-bottom: 18px; border-radius: 6px; outline: none;
+            transition: all 0.2s;
+        }
+        .auth-box input:focus { border-color: var(--border-glow); box-shadow: 0 0 12px rgba(0,242,254,0.25); }
+        .auth-box button {
+            width: 100%; background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%); color: #000; border: none; padding: 12px; font-size: 0.85rem;
+            font-family: 'JetBrains Mono', monospace; font-weight: 700; cursor: pointer; border-radius: 6px; transition: all 0.2s;
+        }
+        .auth-box button:hover { opacity: 0.9; box-shadow: 0 0 20px rgba(0, 242, 254, 0.4); }
+
+        /* ЭКРАН КОМНАТЫ С ПЛАНШЕТОМ */
+        #room-screen {
+            position: fixed; inset: 0; z-index: 9000; background: #000;
+            display: flex; align-items: center; justify-content: center; overflow: hidden;
+        }
+        .room-bg-img {
+            position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+            transition: transform 0.8s cubic-bezier(0.7, 0, 0.25, 1), opacity 0.35s ease;
+            transform-origin: 52% 58%;
+        }
+        #room-bg-hover { opacity: 0; pointer-events: none; }
+        
+        /* НЕВИДИМАЯ КЛИКАБЕЛЬНАЯ ЗОНА НА ПЛАНШЕТЕ */
+        .tablet-hotspot {
+            position: absolute; top: 52%; left: 51.8%; transform: translate(-50%, -50%);
+            width: 220px; height: 130px; cursor: pointer; z-index: 9001;
+        }
+
+        /* АНИМАЦИЯ ЗУМА В ПЛАНШЕТ */
+        .zoom-active .room-bg-img {
+            transform: scale(4.8) translate(-2%, -3%);
+            opacity: 0 !important;
+        }
+        .zoom-active .tablet-hotspot {
+            opacity: 0; pointer-events: none;
+        }
+
+        /* ВЕРХНЯЯ ПАНЕЛЬ */
+        #toolbar {
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            background: rgba(17, 20, 26, 0.85); backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1); padding: 8px 18px; border-radius: 30px;
+            display: flex; gap: 12px; align-items: center; z-index: 1000; box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+        }
+        .tool-btn {
+            background: linear-gradient(135deg, #00f2fe 0%, #00c6ff 100%); color: #060709; border: none; padding: 10px 20px;
+            border-radius: 20px; font-size: 0.85rem; font-family: 'Inter', sans-serif; font-weight: 700; cursor: pointer;
+            transition: all 0.25s ease; box-shadow: 0 0 15px rgba(0, 242, 254, 0.2);
+        }
+        .tool-btn:hover { transform: translateY(-1px); box-shadow: 0 0 22px rgba(0, 242, 254, 0.45); }
+
+        /* ОКНО СОЗДАНИЯ КАРТОЧКИ */
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(3, 4, 6, 0.85); backdrop-filter: blur(8px);
+            display: flex; align-items: center; justify-content: center; z-index: 9000;
+        }
+        .modal-box {
+            background: #11141a; border: 1px solid rgba(255, 255, 255, 0.1); padding: 26px; border-radius: 12px;
+            width: 360px; box-shadow: 0 20px 50px rgba(0,0,0,0.9); display: flex; flex-direction: column; gap: 14px;
+        }
+        .modal-box h3 { font-family: 'Inter', sans-serif; font-size: 1.05rem; font-weight: 700; color: #f0f6fc; }
+        .modal-input, .modal-textarea {
+            width: 100%; background: #08090c; border: 1px solid #21262d; color: #c9d1d9;
+            padding: 11px; border-radius: 6px; outline: none; font-size: 0.85rem; font-family: 'Inter', sans-serif; transition: border-color 0.2s;
+        }
+        .modal-input:focus, .modal-textarea:focus { border-color: var(--border-glow); }
+        .modal-file-label {
+            display: block; width: 100%; padding: 11px; background: #161b22; border: 1px dashed #30363d;
+            color: var(--text-sub); text-align: center; border-radius: 6px; cursor: pointer; font-size: 0.8rem;
+            transition: all 0.2s;
+        }
+        .modal-file-label:hover { border-color: var(--border-glow); color: var(--border-glow); }
+        .preview-img { width: 100%; height: 140px; object-fit: cover; border-radius: 6px; display: none; border: 1px solid #30363d; }
+        .modal-actions { display: flex; gap: 10px; margin-top: 4px; }
+        .btn-cancel { width: 50%; background: #21262d; color: var(--text-sub); border: none; padding: 10px; cursor: pointer; border-radius: 6px; font-weight: 600; }
+        .btn-confirm { width: 50%; background: var(--border-glow); color: #000; border: none; padding: 10px; cursor: pointer; border-radius: 6px; font-weight: 700; }
+
+        /* ХОЛСТ ДОСКИ */
+        #viewport { width: 100vw; height: 100vh; overflow: hidden; position: relative; cursor: grab; }
+        #viewport:active { cursor: grabbing; }
+
+        #workspace {
+            position: absolute; width: 8000px; height: 8000px;
+            background-color: var(--bg-canvas);
+            background-image: 
+                radial-gradient(rgba(0, 242, 254, 0.07) 1px, transparent 1px);
+            background-size: 32px 32px;
+            transform-origin: 0 0;
+        }
+
+        #svg-layer { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2; }
+        path.thread {
+            stroke: var(--accent-cyan); stroke-width: 2.5; fill: none; stroke-linecap: round;
+            filter: drop-shadow(0 0 6px rgba(0, 229, 255, 0.6)); pointer-events: stroke; cursor: pointer;
+            transition: stroke 0.2s;
+        }
+        path.thread:hover { stroke-width: 4; stroke: #ff0055; filter: drop-shadow(0 0 10px rgba(255, 0, 85, 0.8)); }
+
+        /* КАРТОЧКИ ЧЛЕНОВ СЕМЬИ */
+        .card {
+            position: absolute; background: var(--card-bg); color: var(--text-main);
+            width: 270px; padding: 14px; border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 20px 40px rgba(0,0,0,0.8);
+            cursor: grab; z-index: 10; transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .card:hover { border-color: rgba(0, 242, 254, 0.3); box-shadow: 0 20px 40px rgba(0,0,0,0.9), 0 0 15px rgba(0, 242, 254, 0.1); }
+        .card:active { cursor: grabbing; z-index: 100; border-color: var(--border-glow); }
+
+        .card-header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding-bottom: 8px; margin-bottom: 8px; border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .card-tag { font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--border-glow); text-transform: uppercase; }
+        .delete-card { background: none; border: none; color: #484f58; font-size: 14px; cursor: pointer; }
+        .delete-card:hover { color: #f85149; }
+
+        .card-name {
+            font-size: 1.05rem; font-weight: 700; color: #f0f6fc; margin-bottom: 8px; word-break: break-word;
+        }
+
+        .card-img-container {
+            width: 100%; height: 165px; background: #08090c; border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 6px; margin-bottom: 10px; overflow: hidden; display: flex; align-items: center; justify-content: center;
+        }
+        .card-img-container img { width: 100%; height: 100%; object-fit: cover; }
+
+        .card-notes {
+            width: 100%; background: #08090c; border: 1px solid rgba(255, 255, 255, 0.08); color: #c9d1d9;
+            font-size: 0.8rem; padding: 8px; border-radius: 6px; resize: none; outline: none;
+            font-family: 'Inter', sans-serif; line-height: 1.4;
+        }
+        .card-notes:focus { border-color: var(--border-glow); }
+
+        .connector {
+            position: absolute; bottom: -7px; left: 50%; transform: translateX(-50%);
+            width: 14px; height: 14px; background: #00f2fe; border-radius: 50%;
+            border: 2px solid #08090c; box-shadow: 0 0 10px rgba(0, 242, 254, 0.8); cursor: crosshair; z-index: 15;
+            transition: transform 0.15s;
+        }
+        .connector:hover { transform: translateX(-50%) scale(1.3); }
+
+        input[type="file"] { display: none; }
+    </style>
+</head>
+<body>
+
+    <div class="edge-glitch-overlay"></div>
+    <canvas id="cursor-canvas"></canvas>
+
+    <!-- 1. ЭКРАН ВХОДА (Пароль 2026) -->
+    <div id="auth-screen">
+        <div class="auth-box">
+            <h2>ДОСТУП К ДОСКЕ</h2>
+            <p>ВВЕДИТЕ ПИН-КОД</p>
+            <input type="password" id="pass-input" placeholder="••••" maxlength="10">
+            <button onclick="login()">ПОДТВЕРДИТЬ</button>
+            <div id="error-msg" style="color: #f85149; font-size: 0.75rem; margin-top: 12px; font-family: 'JetBrains Mono', monospace; min-height: 15px;"></div>
+        </div>
+    </div>
+
+    <!-- 2. ЭКРАН С ФОТО КОМНАТЫ И ПЛАНШЕТОМ -->
+    <div id="room-screen" style="display: none;">
+        <img id="room-bg" class="room-bg-img" src="desk.jpg" alt="Стол">
+        <img id="room-bg-hover" class="room-bg-img" src="deskn.jpg" alt="Планшет выделен">
+        
+        <!-- Невидимый кликабельный планшет -->
+        <div class="tablet-hotspot" id="tablet-btn" onclick="zoomIntoTablet()" title="Открыть доску"></div>
+    </div>
+
+    <!-- 3. ВЕРХНЕЕ МЕНЮ ДОСКИ -->
+    <div id="toolbar">
+        <button class="tool-btn" onclick="openAddModal()">+ Добавить члена семьи</button>
+    </div>
+
+    <!-- 4. ОКНО СОЗДАНИЯ КАРТОЧКИ -->
+    <div id="modal-overlay" class="modal-overlay" style="display: none;">
+        <div class="modal-box">
+            <h3>НОВЫЙ ЧЛЕН СЕМЬИ</h3>
+            <input type="text" id="modal-name" class="modal-input" placeholder="Имя и Фамилия...">
+            <input type="text" id="modal-role" class="modal-input" placeholder="Статус / Роль (напр. Брат)...">
+            <textarea id="modal-desc" class="modal-textarea" rows="3" placeholder="Заметки / Описание..."></textarea>
+            
+            <label for="modal-file-input" class="modal-file-label" id="modal-file-label">📷 Загрузить фотографию</label>
+            <input type="file" id="modal-file-input" accept="image/*" onchange="previewModalImage(this)">
+            <img id="modal-preview-img" class="preview-img">
+
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="closeAddModal()">Отмена</button>
+                <button class="btn-confirm" onclick="confirmAddCard()">Сохранить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. ОСНОВНАЯ ДОСКА -->
+    <div id="viewport">
+        <div id="workspace">
+            <svg id="svg-layer"></svg>
+        </div>
+    </div>
+
+    <script>
+        // === 1. ПАРОЛЬ (2026) ===
+        const TARGET_HASH = "158a323a7ba44870f23d96f1516dd70aa48e9a72db4ebb026b0a89e212a208ab";
+
+        async function sha256(str) {
+            if (window.crypto && window.crypto.subtle) {
+                const buffer = new TextEncoder().encode(str);
+                const hash = await crypto.subtle.digest('SHA-256', buffer);
+                return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
+            } else {
+                return str === "2026" ? TARGET_HASH : "invalid";
+            }
+        }
+
+        async function login() {
+            const input = document.getElementById('pass-input').value.trim();
+            if (!input) return;
+
+            const inputHash = await sha256(input);
+            if (inputHash === TARGET_HASH) {
+                document.getElementById('auth-screen').style.display = 'none';
+                document.getElementById('room-screen').style.display = 'flex';
+            } else {
+                document.getElementById('error-msg').innerText = "Неверный код доступа";
+                document.getElementById('pass-input').value = "";
+            }
+        }
+
+        document.getElementById('pass-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') login();
+        });
+
+        // Наведение на планшет (подмена фона на deskn.jpg)
+        const tabletBtn = document.getElementById('tablet-btn');
+        const roomBgHover = document.getElementById('room-bg-hover');
+
+        tabletBtn.addEventListener('mouseenter', () => roomBgHover.style.opacity = '1');
+        tabletBtn.addEventListener('mouseleave', () => roomBgHover.style.opacity = '0');
+
+        // Переход из планшета на доску
+        function zoomIntoTablet() {
+            const roomScreen = document.getElementById('room-screen');
+            roomScreen.classList.add('zoom-active');
+            
+            setTimeout(() => {
+                roomScreen.style.display = 'none';
+                initBoard();
+            }, 750);
+        }
+
+        // === 2. ЭЛЕГАНТНЫЙ НЕОНОВЫЙ ШЛЕЙФ МЫШИ ===
+        const canvas = document.getElementById('cursor-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        window.addEventListener('mousemove', (e) => {
+            for (let i = 0; i < 2; i++) {
+                particles.push({
+                    x: e.clientX,
+                    y: e.clientY,
+                    size: Math.random() * 4 + 2,
+                    vx: (Math.random() - 0.5) * 1.2,
+                    vy: (Math.random() - 0.5) * 1.2 - 0.5,
+                    color: Math.random() > 0.5 ? '#00f2fe' : '#7928ca',
+                    alpha: 1
+                });
+            }
+        });
+
+        function renderParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let i = particles.length - 1; i >= 0; i--) {
+                let p = particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.alpha -= 0.025;
+                p.size *= 0.96;
+
+                if (p.alpha <= 0 || p.size <= 0.2) {
+                    particles.splice(i, 1);
+                    continue;
+                }
+
+                ctx.save();
+                ctx.globalAlpha = p.alpha;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fillStyle = p.color;
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = p.color;
+                ctx.fill();
+                ctx.restore();
+            }
+            requestAnimationFrame(renderParticles);
+        }
+        renderParticles();
+
+        // === 3. ДВИЖОК ДОСКИ ===
+        const viewport = document.getElementById('viewport');
+        const workspace = document.getElementById('workspace');
+        const svgLayer = document.getElementById('svg-layer');
+
+        let panX = -3500, panY = -3500;
+        let isPanning = false, startX, startY;
+        
+        let cards = [];
+        let links = [];
+        let cardCounter = 0;
+
+        let isDraggingCard = false, activeCard = null;
+        let isDrawingThread = false, threadStartCardId = null, tempThread = null;
+        let tempModalImageData = null;
+
+        function initBoard() {
+            workspace.style.transform = `translate(${panX}px, ${panY}px)`;
+            if (cards.length === 0) {
+                createCardInstance("Алексей Смирнов", "Старший брат", "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=300&q=80");
+            }
+        }
+
+        viewport.addEventListener('mousedown', (e) => {
+            if (e.target === viewport || e.target === workspace || e.target === svgLayer) {
+                isPanning = true;
+                startX = e.clientX - panX;
+                startY = e.clientY - panY;
+            }
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (isPanning) {
+                panX = e.clientX - startX;
+                panY = e.clientY - startY;
+                workspace.style.transform = `translate(${panX}px, ${panY}px)`;
+            }
+
+            if (isDraggingCard && activeCard) {
+                const x = e.clientX - panX - activeCard.offsetX;
+                const y = e.clientY - panY - activeCard.offsetY;
+                activeCard.el.style.left = `${x}px`;
+                activeCard.el.style.top = `${y}px`;
+                updateThreads();
+            }
+
+            if (isDrawingThread && tempThread) {
+                const rect = workspace.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+
+                const startCard = cards.find(c => c.id === threadStartCardId).el;
+                const sRect = startCard.getBoundingClientRect();
+                const sx = sRect.left + sRect.width / 2 - rect.left;
+                const sy = sRect.bottom - 7 - rect.top;
+
+                tempThread.setAttribute('d', `M ${sx} ${sy} C ${sx} ${(sy + mouseY)/2}, ${mouseX} ${(sy + mouseY)/2}, ${mouseX} ${mouseY}`);
+            }
+        });
+
+        window.addEventListener('mouseup', () => {
+            isPanning = false;
+            isDraggingCard = false;
+            activeCard = null;
+
+            if (isDrawingThread) {
+                isDrawingThread = false;
+                if (tempThread) tempThread.remove();
+                tempThread = null;
+            }
+        });
+
+        // === 4. ОКНО СОЗДАНИЯ КАРТОЧКИ ===
+        function openAddModal() {
+            document.getElementById('modal-overlay').style.display = 'flex';
+            document.getElementById('modal-name').value = '';
+            document.getElementById('modal-role').value = '';
+            document.getElementById('modal-desc').value = '';
+            document.getElementById('modal-preview-img').style.display = 'none';
+            document.getElementById('modal-file-label').innerText = '📷 Загрузить фотографию';
+            tempModalImageData = null;
+        }
+
+        function closeAddModal() {
+            document.getElementById('modal-overlay').style.display = 'none';
+        }
+
+        function previewModalImage(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                tempModalImageData = e.target.result;
+                const img = document.getElementById('modal-preview-img');
+                img.src = tempModalImageData;
+                img.style.display = 'block';
+                document.getElementById('modal-file-label').innerText = '✓ Фото выбрано';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function confirmAddCard() {
+            const name = document.getElementById('modal-name').value.trim() || "Без имени";
+            const role = document.getElementById('modal-role').value.trim() || "Член семьи";
+            const desc = document.getElementById('modal-desc').value.trim() || "";
+            const imgUrl = tempModalImageData || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80";
+
+            createCardInstance(name, role, desc, imgUrl);
+            closeAddModal();
+        }
+
+        function createCardInstance(name, role, desc, imgSrc) {
+            cardCounter++;
+            const id = cardCounter;
+
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.dataset.id = id;
+
+            const x = -panX + window.innerWidth / 2 - 135 + (Math.random() * 80 - 40);
+            const y = -panY + window.innerHeight / 2 - 150 + (Math.random() * 80 - 40);
+            card.style.left = `${x}px`;
+            card.style.top = `${y}px`;
+
+            card.innerHTML = `
+                <div class="card-header">
+                    <span class="card-tag">${role || 'Семья'}</span>
+                    <button class="delete-card" onclick="deleteCard(${id})">✕</button>
+                </div>
+                <div class="card-name">${name}</div>
+                <div class="card-img-container">
+                    <img src="${imgSrc}">
+                </div>
+                <textarea class="card-notes" rows="3" placeholder="Заметки...">${desc}</textarea>
+                <div class="connector" title="Соединить нитью"></div>
+            `;
+
+            attachCardEvents(card, id);
+            workspace.appendChild(card);
+            cards.push({ id, el: card });
+        }
+
+        function attachCardEvents(card, id) {
+            card.addEventListener('mousedown', (e) => {
+                if (['TEXTAREA', 'BUTTON'].includes(e.target.tagName) || e.target.classList.contains('connector')) return;
+                isDraggingCard = true;
+                activeCard = {
+                    el: card,
+                    offsetX: e.clientX - card.getBoundingClientRect().left,
+                    offsetY: e.clientY - card.getBoundingClientRect().top
+                };
+                workspace.appendChild(card);
+            });
+
+            const connector = card.querySelector('.connector');
+            connector.addEventListener('mousedown', (e) => {
+                e.stopPropagation();
+                isDrawingThread = true;
+                threadStartCardId = id;
+
+                tempThread = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                tempThread.classList.add('thread');
+                svgLayer.appendChild(tempThread);
+            });
+
+            connector.addEventListener('mouseup', (e) => {
+                e.stopPropagation();
+                if (isDrawingThread && threadStartCardId && threadStartCardId !== id) {
+                    if (!links.some(l => (l.from === threadStartCardId && l.to === id) || (l.from === id && l.to === threadStartCardId))) {
+                        links.push({ from: threadStartCardId, to: id });
+                        renderThreads();
+                    }
+                }
+            });
+        }
+
+        function deleteCard(id) {
+            const cardObj = cards.find(c => c.id === id);
+            if (cardObj) {
+                cardObj.el.remove();
+                cards = cards.filter(c => c.id !== id);
+                links = links.filter(l => l.from !== id && l.to !== id);
+                renderThreads();
+            }
+        }
+
+        // === 5. СВЯЗИ КАРТОЧЕК ===
+        function renderThreads() {
+            svgLayer.innerHTML = '';
+            links.forEach((link, index) => {
+                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                path.classList.add('thread');
+                path.dataset.index = index;
+                path.title = "Удалить связь";
+                
+                path.addEventListener('click', () => {
+                    links.splice(index, 1);
+                    renderThreads();
+                });
+
+                svgLayer.appendChild(path);
+            });
+            updateThreads();
+        }
+
+        function updateThreads() {
+            const rect = workspace.getBoundingClientRect();
+
+            document.querySelectorAll('path.thread[data-index]').forEach(path => {
+                const index = parseInt(path.dataset.index);
+                const link = links[index];
+                if (!link) return;
+
+                const c1 = cards.find(c => c.id === link.from);
+                const c2 = cards.find(c => c.id === link.to);
+                if (!c1 || !c2) return;
+
+                const r1 = c1.el.getBoundingClientRect();
+                const r2 = c2.el.getBoundingClientRect();
+
+                const x1 = r1.left + r1.width / 2 - rect.left;
+                const y1 = r1.bottom - 7 - rect.top;
+
+                const x2 = r2.left + r2.width / 2 - rect.left;
+                const y2 = r2.top + 7 - rect.top;
+
+                path.setAttribute('d', `M ${x1} ${y1} C ${x1} ${(y1 + y2)/2}, ${x2} ${(y1 + y2)/2}, ${x2} ${y2}`);
+            });
+        }
+    </script>
+</body>
+</html>
