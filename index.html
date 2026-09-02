@@ -96,8 +96,8 @@
 
         /* ОГРАНИЧЕНИЕ ПРАВ В РЕЖИМЕ ПРОСМОТРА */
         body:not(.edit-mode) .admin-only { display: none !important; }
-        body:not(.edit-mode) .card { cursor: grab; }
-        body:not(.edit-mode) .card-notes { pointer-events: none; border-color: transparent; background: transparent; }
+        body:not(.edit-mode) .admin-hidden { display: block !important; }
+        body.edit-mode .admin-hidden { display: none !important; }
 
         /* МОДАЛЬНЫЕ ОКНА */
         .modal-overlay {
@@ -151,12 +151,35 @@
         }
         .card:hover { border-color: rgba(0, 242, 254, 0.4); box-shadow: 0 16px 40px rgba(0, 242, 254, 0.15); }
         .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-        .card-tag { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: var(--border-glow); font-weight: 500; }
+        .card-tag { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: var(--border-glow); font-weight: 500; text-transform: uppercase; }
+        
+        /* Стили для полей ввода в режиме редактирования */
+        .card-tag-input {
+            background: transparent; border: none; padding: 0; color: inherit; font-family: inherit; font-size: inherit; text-transform: uppercase;
+        }
+        .card-tag-input:focus { outline: 1px solid var(--border-glow); }
+
+        .card-name-input {
+            background: transparent; border: none; padding: 0; color: inherit; font-family: inherit; font-size: inherit; font-weight: inherit;
+        }
+        .card-name-input:focus { outline: 1px solid var(--border-glow); }
+
         .delete-card { background: none; border: none; color: #484f58; cursor: pointer; font-size: 0.9rem; }
         .delete-card:hover { color: #f85149; }
+        
         .card-name { font-size: 1.1rem; font-weight: 700; color: #f0f6fc; margin-bottom: 10px; }
-        .card-img-container { width: 100%; height: 170px; background: #08090c; border-radius: 8px; margin-bottom: 12px; overflow: hidden; }
+        
+        .card-img-container { width: 100%; height: 170px; background: #08090c; border-radius: 8px; margin-bottom: 12px; overflow: hidden; position: relative; }
         .card-img-container img { width: 100%; height: 100%; object-fit: cover; }
+        
+        /* Стиль для оверлея редактирования фото */
+        .card-img-edit-overlay {
+            position: absolute; inset: 0; background: rgba(0, 0, 0, 0.7); color: #fff;
+            display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 8px;
+            opacity: 0; transition: opacity 0.2s ease; cursor: pointer;
+        }
+        .card-img-container:hover .card-img-edit-overlay { opacity: 1; }
+
         .card-notes { 
             width: 100%; background: rgba(8, 11, 16, 0.8); border: 1px solid rgba(255, 255, 255, 0.08); 
             color: #c9d1d9; font-size: 0.8rem; padding: 10px; border-radius: 8px; resize: none; outline: none; 
@@ -173,7 +196,7 @@
         input[type="file"] { display: none; }
     </style>
 </head>
-<body>
+<body class="public-mode">
 
     <!-- ФОНОВАЯ РЕЛАКС МУЗЫКА -->
     <audio id="bg-music" loop src="https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3"></audio>
@@ -201,9 +224,9 @@
 
         <div class="divider"></div>
 
-        <!-- Музыка -->
+        <!-- Музыка (Button text updated to 'Вкл' default for autoplay attempt) -->
         <div class="audio-controls">
-            <button class="tool-btn-secondary" id="music-btn" onclick="toggleMusic()">🎵 Музыка: Выкл</button>
+            <button class="tool-btn-secondary" id="music-btn" onclick="toggleMusic()">🎵 Музыка: Вкл</button>
             <input type="range" class="volume-slider" id="volume-slider" min="0" max="1" step="0.05" value="0.3" oninput="setVolume(this.value)">
         </div>
 
@@ -270,7 +293,7 @@
         try {
             firebase.initializeApp(firebaseConfig);
             db = firebase.database();
-        } catch(e) { console.log("Firebase ошибка:", e); }
+        } catch(e) { console.log("Firebase ошибка инициализации:", e); }
 
         // === ГЕНЕРАТОР ЗВУКОВЫХ ЭФФЕКТОВ (Web Audio API) ===
         class SoundEngine {
@@ -343,6 +366,7 @@
         // Авто-инициализация звуков при первом клике пользователя (Обход автоплей политики)
         function unlockAudioOnFirstInteraction() {
             sfx.init();
+            playMusicOnInteraction(); // Also attempt music on first click.
             window.removeEventListener('click', unlockAudioOnFirstInteraction);
             window.removeEventListener('keydown', unlockAudioOnFirstInteraction);
             window.removeEventListener('touchstart', unlockAudioOnFirstInteraction);
@@ -353,28 +377,42 @@
 
         // === МУЗЫКА ===
         const bgMusic = document.getElementById('bg-music');
-        let musicPlaying = false;
+        let musicPlaying = true; // Music button state 'Вкл' default.
         bgMusic.volume = 0.3;
+
+        // Broad attempt to play music, requires prior user interaction. 
+        // Modern browsers block autoplay. This makes the text reflect that it's *attempting* and will play on next click.
+        function playMusicOnInteraction() {
+            if (musicPlaying && bgMusic.paused) {
+                 bgMusic.play().then(() => {
+                    document.getElementById('music-btn').innerText = "🎵 Музыка: Вкл";
+                }).catch(() => {
+                    // Browser blocked autoplay. Wait for another interaction. Button stays 'Вкл'.
+                });
+            }
+        }
 
         function toggleMusic() {
             sfx.playClick();
             if (musicPlaying) {
                 bgMusic.pause();
                 musicPlaying = false;
-                document.getElementById('music-btn').innerText = "🎵 Музыка: Выкл";
+                document.getElementById('music-btn').innerText = "🔇 Музыка: Выкл";
             } else {
+                musicPlaying = true;
                 bgMusic.play().then(() => {
-                    musicPlaying = true;
                     document.getElementById('music-btn').innerText = "🎵 Музыка: Вкл";
-                }).catch(() => {});
+                }).catch(() => {
+                    // Browser blocked autoplay. Wait for user interaction. Button stays 'Вкл'.
+                });
             }
         }
 
         function setVolume(val) { bgMusic.volume = val; }
 
         // === БЕЗОПАСНОСТЬ И РЕЖИМ АДМИНА ===
-        // SHA-256 хэш пароля (В коде нет открытого пароля!)
-        const TARGET_HASH = "158a323a7ba44870f23d96f1516dd70aa48e9a72db4ebb026b0a89e212a208ab";
+        // SHA-256 хэш нового пароля `#%&,p3H[RPPP(csw`
+        const TARGET_HASH = "3f2334f3c05423f05a113a0053229b119102c7e0c4c44f075024e030c25a0753";
         let isEditMode = false;
 
         async function sha256(str) {
@@ -386,13 +424,11 @@
         function toggleAdminMode() {
             sfx.playClick();
             if (isEditMode) {
-                // Выход из админ-режима
                 isEditMode = false;
                 document.body.classList.remove('edit-mode');
                 document.getElementById('admin-toggle-btn').innerText = "🔒 Вход (Админ)";
                 renderThreads();
             } else {
-                // Открытие окна входа
                 document.getElementById('admin-pass-input').value = '';
                 document.getElementById('auth-error-msg').innerText = '';
                 document.getElementById('auth-modal').style.display = 'flex';
@@ -430,6 +466,7 @@
             setTimeout(() => {
                 document.getElementById('room-screen').style.display = 'none';
                 initBoard();
+                playMusicOnInteraction(); // First interaction plays music.
             }, 700);
         }
 
@@ -454,13 +491,8 @@
 
         function changeZoom(delta) {
             sfx.playClick();
-            const newZoom = Math.min(Math.max(zoom + delta, MIN_ZOOM), MAX_ZOOM);
-            const centerPointX = window.innerWidth / 2;
-            const centerPointY = window.innerHeight / 2;
-            panX -= (centerPointX - panX) * (newZoom / zoom - 1);
-            panY -= (centerPointY - panY) * (newZoom / zoom - 1);
-            zoom = newZoom;
-            updateWorkspaceTransform();
+            const centerPointX = window.innerWidth / 2, centerPointY = window.innerHeight / 2;
+            zoomIntoPoint(centerPointX, centerPointY, delta);
         }
 
         function resetZoom() {
@@ -469,27 +501,25 @@
             updateWorkspaceTransform();
         }
 
-        // Зум колесиком мыши в точку курсора
-        viewport.addEventListener('wheel', (e) => {
-            e.preventDefault();
-            const zoomSpeed = 0.0012;
-            const delta = -e.deltaY * zoomSpeed;
+        function zoomIntoPoint(mouseX, mouseY, delta) {
             const newZoom = Math.min(Math.max(zoom + delta, MIN_ZOOM), MAX_ZOOM);
-
             if (newZoom !== zoom) {
-                const mouseX = e.clientX;
-                const mouseY = e.clientY;
                 panX -= (mouseX - panX) * (newZoom / zoom - 1);
                 panY -= (mouseY - panY) * (newZoom / zoom - 1);
                 zoom = newZoom;
                 updateWorkspaceTransform();
             }
+        }
+
+        // Зум колесиком мыши в точку курсора
+        viewport.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const zoomSpeed = 0.0012, delta = -e.deltaY * zoomSpeed;
+            zoomIntoPoint(e.clientX, e.clientY, delta);
         }, { passive: false });
 
         function initBoard() {
             updateWorkspaceTransform();
-            
-            // Синхронизация с БД
             if (db) {
                 db.ref('family_board').on('value', (snapshot) => {
                     const data = snapshot.val() || { cards: [], links: [] };
@@ -540,12 +570,10 @@
             }
             if (isDrawingThread && tempThread && isEditMode) {
                 const rect = workspace.getBoundingClientRect();
-                const mouseX = (e.clientX - rect.left) / zoom;
-                const mouseY = (e.clientY - rect.top) / zoom;
+                const mouseX = (e.clientX - rect.left) / zoom, mouseY = (e.clientY - rect.top) / zoom;
                 const startCard = cards.find(c => c.id === threadStartCardId);
                 if (startCard && startCard.el) {
-                    const sx = startCard.data.left + 140;
-                    const sy = startCard.data.top + startCard.el.offsetHeight - 8;
+                    const sx = startCard.data.left + 140, sy = startCard.data.top + startCard.el.offsetHeight - 8;
                     tempThread.setAttribute('d', `M ${sx} ${sy} C ${sx} ${(sy + mouseY)/2}, ${mouseX} ${(sy + mouseY)/2}, ${mouseX} ${mouseY}`);
                 }
             }
@@ -606,11 +634,21 @@
             card.style.left = `${data.left}px`; card.style.top = `${data.top}px`;
             card.innerHTML = `
                 <div class="card-header">
-                    <span class="card-tag">${data.role}</span>
+                    <span class="card-tag card-tag-view admin-hidden">${data.role}</span>
+                    <input type="text" class="card-tag card-tag-input admin-only" value="${data.role}" placeholder="Роль..." data-card-id="${data.id}" onblur="updateCardRole(this)">
                     <button class="delete-card admin-only" onclick="deleteCard(${data.id})">✕</button>
                 </div>
-                <div class="card-name">${data.name}</div>
-                <div class="card-img-container"><img src="${data.imgSrc}"></div>
+                <div class="card-name card-name-view admin-hidden">${data.name}</div>
+                <input type="text" class="card-name card-name-input admin-only" value="${data.name}" placeholder="Имя и Фамилия..." data-card-id="${data.id}" onblur="updateCardName(this)">
+                
+                <div class="card-img-container">
+                    <img src="${data.imgSrc}">
+                    <div class="card-img-edit-overlay admin-only" onclick="triggerCardImageUpload(${data.id})">
+                        <span>📷</span>
+                        <span style="font-size: 0.7rem;">Заменить фото</span>
+                        <input type="file" class="card-img-file-input" accept="image/*" onchange="handleCardImageUpdate(this, ${data.id})">
+                    </div>
+                </div>
                 <textarea class="card-notes" rows="3" placeholder="Заметки...">${data.desc}</textarea>
                 <div class="connector admin-only"></div>
             `;
@@ -622,16 +660,11 @@
 
         function attachCardEvents(card, id, dataObj) {
             card.addEventListener('mousedown', (e) => {
-                if (!isEditMode) return;
-                if (['TEXTAREA', 'BUTTON'].includes(e.target.tagName) || e.target.classList.contains('connector')) return;
+                if (!isEditMode || ['TEXTAREA', 'BUTTON', 'INPUT'].includes(e.target.tagName) || e.target.classList.contains('connector') || e.target.classList.contains('card-img-edit-overlay')) return;
                 isDraggingCard = true;
                 const cardRect = card.getBoundingClientRect();
-                activeCard = { 
-                    el: card, 
-                    data: dataObj, 
-                    offsetX: (e.clientX - cardRect.left) / zoom, 
-                    offsetY: (e.clientY - cardRect.top) / zoom 
-                };
+                activeCard = { el: card, data: dataObj, offsetX: (e.clientX - cardRect.left) / zoom, offsetY: (e.clientY - cardRect.top) / zoom };
+                workspace.appendChild(card); // Move to front
             });
 
             card.querySelector('.card-notes').addEventListener('change', (e) => {
@@ -654,8 +687,7 @@
                 if (isDrawingThread && threadStartCardId && threadStartCardId !== id) {
                     if (!links.some(l => (l.from === threadStartCardId && l.to === id) || (l.from === id && l.to === threadStartCardId))) {
                         links.push({ from: threadStartCardId, to: id });
-                        sfx.playConnect();
-                        saveToCloud();
+                        sfx.playConnect(); saveToCloud();
                     }
                 }
             });
@@ -669,14 +701,57 @@
             saveToCloud();
         }
 
+        function updateCardData(id, name, role, notes, imgSrc) {
+            if (!isEditMode) return;
+            const cardObj = cards.find(c => c.id === id);
+            if (cardObj) {
+                if (name !== undefined) cardObj.data.name = name;
+                if (role !== undefined) cardObj.data.role = role;
+                if (notes !== undefined) cardObj.data.desc = notes;
+                if (imgSrc !== undefined) cardObj.data.imgSrc = imgSrc;
+                saveToCloud();
+            }
+        }
+
+        // --- Внутренние функции для редактирования полей карточек ---
+        function updateCardName(input) {
+            if (!isEditMode) return;
+            const id = parseInt(input.dataset.cardId), name = input.value.trim() || "Без имени";
+            updateCardData(id, name, undefined, undefined, undefined);
+            const viewName = input.closest('.card').querySelector('.card-name-view');
+            if (viewName) viewName.innerText = name;
+        }
+        function updateCardRole(input) {
+            if (!isEditMode) return;
+            const id = parseInt(input.dataset.cardId), role = input.value.trim() || "Семья";
+            updateCardData(id, undefined, role, undefined, undefined);
+            const viewTag = input.closest('.card').querySelector('.card-tag-view');
+            if (viewTag) viewTag.innerText = role;
+        }
+        function triggerCardImageUpload(id) {
+            if (!isEditMode) return;
+            const card = workspace.querySelector(`.card[data-id="${id}"]`);
+            if (card) card.querySelector('.card-img-file-input').click();
+        }
+        function handleCardImageUpdate(input, id) {
+            if (!isEditMode) return;
+            const file = input.files[0]; if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const dataURL = e.target.result;
+                updateCardData(id, undefined, undefined, undefined, dataURL);
+                const card = workspace.querySelector(`.card[data-id="${id}"]`);
+                if (card) card.querySelector('.card-img-container img').src = dataURL;
+            };
+            reader.readAsDataURL(file);
+        }
+
         function renderThreads() {
             svgLayer.innerHTML = '';
             links.forEach((link, index) => {
                 const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
                 path.classList.add('thread'); path.dataset.index = index;
-                if (isEditMode) {
-                    path.addEventListener('click', () => { sfx.playDelete(); links.splice(index, 1); saveToCloud(); });
-                }
+                if (isEditMode) path.addEventListener('click', () => { sfx.playDelete(); links.splice(index, 1); saveToCloud(); });
                 svgLayer.appendChild(path);
             });
             updateThreads();
@@ -688,12 +763,8 @@
                 if (!link) return;
                 const c1 = cards.find(c => c.id === link.from), c2 = cards.find(c => c.id === link.to);
                 if (!c1 || !c2 || !c1.el || !c2.el) return;
-                
-                const x1 = c1.data.left + 140;
-                const y1 = c1.data.top + c1.el.offsetHeight - 8;
-                const x2 = c2.data.left + 140;
-                const y2 = c2.data.top + 8;
-                
+                const x1 = c1.data.left + 140, y1 = c1.data.top + c1.el.offsetHeight - 8;
+                const x2 = c2.data.left + 140, y2 = c2.data.top + 8;
                 path.setAttribute('d', `M ${x1} ${y1} C ${x1} ${(y1 + y2)/2}, ${x2} ${(y1 + y2)/2}, ${x2} ${y2}`);
             });
         }
