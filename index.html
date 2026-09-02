@@ -33,51 +33,7 @@
             height: 100vh;
         }
 
-        /* ЭКРАН ВХОДА */
-        #auth-screen {
-            position: fixed; inset: 0; 
-            background: radial-gradient(circle at center, #0f172a 0%, #030406 100%);
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            z-index: 10000;
-        }
-        .auth-box {
-            background: rgba(13, 17, 23, 0.75); 
-            backdrop-filter: blur(24px); 
-            padding: 42px 36px; border-radius: 16px;
-            border: 1px solid rgba(0, 242, 254, 0.25); text-align: center;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(0, 242, 254, 0.15); 
-            max-width: 380px; width: 90%;
-        }
-        .auth-box h2 { 
-            font-family: 'JetBrains Mono', monospace; font-size: 1.25rem; 
-            margin-bottom: 8px; color: #fff; letter-spacing: 2px;
-            text-shadow: 0 0 10px rgba(0, 242, 254, 0.5);
-        }
-        .auth-box p { font-size: 0.75rem; color: var(--text-sub); margin-bottom: 26px; font-family: 'JetBrains Mono', monospace; }
-        .auth-box input {
-            width: 100%; padding: 14px; background: rgba(5, 7, 10, 0.8); 
-            border: 1px solid rgba(0, 242, 254, 0.3); color: var(--border-glow);
-            font-family: 'JetBrains Mono', monospace; font-size: 1.5rem; letter-spacing: 8px; 
-            text-align: center; margin-bottom: 20px; border-radius: 8px; outline: none;
-            transition: all 0.3s ease;
-        }
-        .auth-box input:focus {
-            border-color: var(--border-glow);
-            box-shadow: 0 0 15px rgba(0, 242, 254, 0.4);
-        }
-        .auth-box button {
-            width: 100%; background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%); 
-            color: #030406; border: none; padding: 14px;
-            font-family: 'JetBrains Mono', monospace; font-weight: 700; cursor: pointer; 
-            border-radius: 8px; font-size: 0.9rem; letter-spacing: 1px;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-        .auth-box button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0, 242, 254, 0.4);
-        }
-
-        /* ЭКРАН СТОЛА (БЕЗ ЧЕРНЫХ ПОЛОС) */
+        /* ЭКРАН СТОЛА */
         #room-screen {
             position: fixed; inset: 0; z-index: 9000; background: #000;
             display: flex; align-items: center; justify-content: center; overflow: hidden;
@@ -89,13 +45,11 @@
         }
         .room-bg-img {
             position: absolute; width: 100%; height: 100%; 
-            object-fit: cover; /* Исключает черные полосы по бокам */
-            object-position: center;
+            object-fit: cover; object-position: center;
             transition: opacity 0.35s ease;
         }
         #room-bg-hover { opacity: 0; pointer-events: none; }
         
-        /* УВЕЛИЧЕННАЯ КНОПКА ПЛАНШЕТА */
         .tablet-hotspot {
             position: absolute; 
             top: 56.5%; left: 51.5%; transform: translate(-50%, -50%) rotate(-3deg);
@@ -108,50 +62,69 @@
 
         /* ВЕРХНЯЯ ПАНЕЛЬ */
         #toolbar {
-            position: fixed; top: 24px; left: 50%; transform: translateX(-50%);
-            background: rgba(13, 17, 23, 0.75); backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.12); padding: 8px 16px; border-radius: 40px;
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            background: rgba(13, 17, 23, 0.85); backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.12); padding: 8px 18px; border-radius: 40px;
             display: flex; gap: 12px; align-items: center; z-index: 1000;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
         }
         .tool-btn {
-            background: linear-gradient(135deg, #00f2fe 0%, #00c6ff 100%); color: #060709; border: none; padding: 10px 22px;
+            background: linear-gradient(135deg, #00f2fe 0%, #00c6ff 100%); color: #060709; border: none; padding: 8px 18px;
             border-radius: 25px; font-size: 0.85rem; font-weight: 700; cursor: pointer;
+            transition: all 0.2s ease; display: flex; align-items: center; gap: 6px;
+        }
+        .tool-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 15px rgba(0, 242, 254, 0.4); }
+
+        .tool-btn-secondary {
+            background: rgba(255, 255, 255, 0.08); color: #e6edf3; border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 8px 14px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; cursor: pointer;
             transition: all 0.2s ease;
         }
-        .tool-btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 15px rgba(0, 242, 254, 0.4);
-        }
+        .tool-btn-secondary:hover { background: rgba(255, 255, 255, 0.18); border-color: var(--border-glow); }
 
-        /* ОКНО СОЗДАНИЯ */
+        .admin-status-btn {
+            background: rgba(0, 242, 254, 0.1); border: 1px solid rgba(0, 242, 254, 0.3); color: var(--border-glow);
+            padding: 8px 14px; border-radius: 20px; font-size: 0.8rem; font-weight: 700; cursor: pointer;
+            font-family: 'JetBrains Mono', monospace; transition: all 0.2s ease;
+        }
+        .admin-status-btn:hover { background: rgba(0, 242, 254, 0.25); box-shadow: 0 0 12px rgba(0, 242, 254, 0.3); }
+
+        .divider { width: 1px; height: 24px; background: rgba(255, 255, 255, 0.15); }
+        .zoom-display { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--border-glow); min-width: 48px; text-align: center; }
+        .audio-controls { display: flex; align-items: center; gap: 8px; }
+        .volume-slider { width: 60px; accent-color: var(--border-glow); cursor: pointer; }
+
+        /* ОГРАНИЧЕНИЕ ПРАВ В РЕЖИМЕ ПРОСМОТРА */
+        body:not(.edit-mode) .admin-only { display: none !important; }
+        body:not(.edit-mode) .card { cursor: grab; }
+        body:not(.edit-mode) .card-notes { pointer-events: none; border-color: transparent; background: transparent; }
+
+        /* МОДАЛЬНЫЕ ОКНА */
         .modal-overlay {
             position: fixed; inset: 0; background: rgba(3, 4, 6, 0.85); backdrop-filter: blur(12px);
-            display: flex; align-items: center; justify-content: center; z-index: 9000;
+            display: flex; align-items: center; justify-content: center; z-index: 10000;
         }
         .modal-box {
-            background: rgba(17, 22, 31, 0.95); border: 1px solid rgba(0, 242, 254, 0.2); 
+            background: rgba(17, 22, 31, 0.95); border: 1px solid rgba(0, 242, 254, 0.25); 
             padding: 30px; border-radius: 16px; width: 380px; display: flex; flex-direction: column; gap: 14px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.9);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.9); text-align: center;
         }
+        .modal-box h3 { font-family: 'JetBrains Mono', monospace; font-size: 1.1rem; color: #fff; }
         .modal-input, .modal-textarea {
             width: 100%; background: #080b10; border: 1px solid #21262d; color: #c9d1d9;
-            padding: 12px; border-radius: 8px; outline: none; font-size: 0.85rem;
-            transition: border 0.2s ease;
+            padding: 12px; border-radius: 8px; outline: none; font-size: 0.85rem; transition: border 0.2s ease;
         }
         .modal-input:focus, .modal-textarea:focus { border-color: var(--border-glow); }
         .modal-file-label {
             display: block; width: 100%; padding: 12px; background: #161b22; border: 1px dashed rgba(0, 242, 254, 0.4);
             color: var(--text-sub); text-align: center; border-radius: 8px; cursor: pointer; font-size: 0.8rem;
-            transition: all 0.2s ease;
         }
-        .modal-file-label:hover { border-color: var(--border-glow); color: #fff; }
         .preview-img { width: 100%; height: 150px; object-fit: cover; border-radius: 8px; display: none; }
         .modal-actions { display: flex; gap: 10px; margin-top: 6px; }
         .btn-cancel { width: 50%; background: #21262d; color: var(--text-sub); border: none; padding: 12px; cursor: pointer; border-radius: 8px; font-weight: 600; }
         .btn-confirm { width: 50%; background: var(--border-glow); color: #000; border: none; padding: 12px; cursor: pointer; border-radius: 8px; font-weight: 700; }
 
-        /* ХОЛСТ СЕТКА */
+        /* ХОЛСТ И СЕТКА */
         #viewport { width: 100vw; height: 100vh; overflow: hidden; position: relative; cursor: grab; }
         #viewport:active { cursor: grabbing; }
 
@@ -193,8 +166,7 @@
         .connector { 
             position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%); 
             width: 16px; height: 16px; background: #00f2fe; border-radius: 50%; cursor: crosshair; z-index: 15; 
-            box-shadow: 0 0 10px #00f2fe; border: 2px solid #000;
-            transition: transform 0.2s ease;
+            box-shadow: 0 0 10px #00f2fe; border: 2px solid #000; transition: transform 0.2s ease;
         }
         .connector:hover { transform: translateX(-50%) scale(1.3); }
 
@@ -203,19 +175,11 @@
 </head>
 <body>
 
-    <!-- 1. ЭКРАН ВХОДА -->
-    <div id="auth-screen">
-        <div class="auth-box">
-            <h2>ДОСТУП К ДОСКЕ</h2>
-            <p>ВВЕДИТЕ ПИН-КОД</p>
-            <input type="password" id="pass-input" placeholder="••••" maxlength="10">
-            <button onclick="login()">ПОДТВЕРДИТЬ</button>
-            <div id="error-msg" style="color: #f85149; font-size: 0.75rem; margin-top: 14px; font-family: 'JetBrains Mono', monospace; min-height: 15px;"></div>
-        </div>
-    </div>
+    <!-- ФОНОВАЯ РЕЛАКС МУЗЫКА -->
+    <audio id="bg-music" loop src="https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3"></audio>
 
-    <!-- 2. ЭКРАН СТОЛА -->
-    <div id="room-screen" style="display: none;">
+    <!-- 1. ЭКРАН СТОЛА -->
+    <div id="room-screen">
         <div id="room-bg-group">
             <img id="room-bg" class="room-bg-img" src="desk.jpg" alt="Стол">
             <img id="room-bg-hover" class="room-bg-img" src="deskn.jpg" alt="Планшет">
@@ -223,15 +187,50 @@
         <div class="tablet-hotspot" id="tablet-btn" onclick="zoomIntoTablet()"></div>
     </div>
 
-    <!-- 3. ВЕРХНЕЕ МЕНЮ -->
+    <!-- 2. ВЕРХНЕЕ МЕНЮ -->
     <div id="toolbar">
-        <button class="tool-btn" onclick="openAddModal()">+ Добавить члена семьи</button>
+        <!-- Кнопка добавлений доступна только в режиме админа -->
+        <button class="tool-btn admin-only" onclick="openAddModal()">+ Добавить члена семьи</button>
+        <div class="divider admin-only"></div>
+
+        <!-- Зум -->
+        <button class="tool-btn-secondary" onclick="changeZoom(-0.15)">−</button>
+        <span class="zoom-display" id="zoom-val">100%</span>
+        <button class="tool-btn-secondary" onclick="changeZoom(0.15)">+</button>
+        <button class="tool-btn-secondary" onclick="resetZoom()">Сброс</button>
+
+        <div class="divider"></div>
+
+        <!-- Музыка -->
+        <div class="audio-controls">
+            <button class="tool-btn-secondary" id="music-btn" onclick="toggleMusic()">🎵 Музыка: Выкл</button>
+            <input type="range" class="volume-slider" id="volume-slider" min="0" max="1" step="0.05" value="0.3" oninput="setVolume(this.value)">
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- ВХОД В РЕЖИМ АДМИНА В УГОЛКЕ -->
+        <button class="admin-status-btn" id="admin-toggle-btn" onclick="toggleAdminMode()">🔒 Вход (Админ)</button>
     </div>
 
-    <!-- 4. ОКНО ДОБАВЛЕНИЯ -->
-    <div id="modal-overlay" class="modal-overlay" style="display: none;">
+    <!-- 3. ОКНО АВТОРИЗАЦИИ АДМИНА -->
+    <div id="auth-modal" class="modal-overlay" style="display: none;">
         <div class="modal-box">
-            <h3 style="color:#fff; font-size: 1.1rem; font-family: 'JetBrains Mono', monospace;">НОВЫЙ ЧЛЕН СЕМЬИ</h3>
+            <h3>РЕЖИМ РЕДАКТИРОВАНИЯ</h3>
+            <p style="font-size: 0.75rem; color: var(--text-sub); margin-bottom: 10px;">Введите PIN-код для внесения изменений</p>
+            <input type="password" id="admin-pass-input" class="modal-input" placeholder="••••" style="text-align: center; letter-spacing: 6px; font-size: 1.2rem;">
+            <div id="auth-error-msg" style="color: #f85149; font-size: 0.75rem; min-height: 16px;"></div>
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="closeAuthModal()">Отмена</button>
+                <button class="btn-confirm" onclick="confirmAdminLogin()">Войти</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. ОКНО ДОБАВЛЕНИЯ ЧЛЕНА СЕМЬИ -->
+    <div id="add-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-box" style="text-align: left;">
+            <h3>НОВЫЙ ЧЛЕН СЕМЬИ</h3>
             <input type="text" id="modal-name" class="modal-input" placeholder="Имя и Фамилия...">
             <input type="text" id="modal-role" class="modal-input" placeholder="Роль (Брат, Сестра)...">
             <textarea id="modal-desc" class="modal-textarea" rows="3" placeholder="Заметки..."></textarea>
@@ -271,33 +270,162 @@
         try {
             firebase.initializeApp(firebaseConfig);
             db = firebase.database();
-        } catch(e) { console.log("Firebase ошибка инициализации:", e); }
+        } catch(e) { console.log("Firebase ошибка:", e); }
 
-        // === ПАРОЛЬ ===
+        // === ГЕНЕРАТОР ЗВУКОВЫХ ЭФФЕКТОВ (Web Audio API) ===
+        class SoundEngine {
+            constructor() { this.ctx = null; }
+            init() {
+                if (!this.ctx) {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (this.ctx && this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            }
+            playClick() {
+                this.init();
+                if (!this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(800, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(300, this.ctx.currentTime + 0.04);
+                gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.04);
+                osc.connect(gain); gain.connect(this.ctx.destination);
+                osc.start(); osc.stop(this.ctx.currentTime + 0.04);
+            }
+            playTabletZoom() {
+                this.init();
+                if (!this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(90, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(550, this.ctx.currentTime + 0.65);
+                gain.gain.setValueAtTime(0.01, this.ctx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.25, this.ctx.currentTime + 0.35);
+                gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.65);
+                osc.connect(gain); gain.connect(this.ctx.destination);
+                osc.start(); osc.stop(this.ctx.currentTime + 0.65);
+            }
+            playConnect() {
+                this.init();
+                if (!this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(523.25, this.ctx.currentTime);
+                osc.frequency.setValueAtTime(659.25, this.ctx.currentTime + 0.07);
+                osc.frequency.setValueAtTime(783.99, this.ctx.currentTime + 0.14);
+                gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.3);
+                osc.connect(gain); gain.connect(this.ctx.destination);
+                osc.start(); osc.stop(this.ctx.currentTime + 0.3);
+            }
+            playDelete() {
+                this.init();
+                if (!this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(280, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(60, this.ctx.currentTime + 0.15);
+                gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.15);
+                osc.connect(gain); gain.connect(this.ctx.destination);
+                osc.start(); osc.stop(this.ctx.currentTime + 0.15);
+            }
+        }
+        const sfx = new SoundEngine();
+
+        // Авто-инициализация звуков при первом клике пользователя (Обход автоплей политики)
+        function unlockAudioOnFirstInteraction() {
+            sfx.init();
+            window.removeEventListener('click', unlockAudioOnFirstInteraction);
+            window.removeEventListener('keydown', unlockAudioOnFirstInteraction);
+            window.removeEventListener('touchstart', unlockAudioOnFirstInteraction);
+        }
+        window.addEventListener('click', unlockAudioOnFirstInteraction);
+        window.addEventListener('keydown', unlockAudioOnFirstInteraction);
+        window.addEventListener('touchstart', unlockAudioOnFirstInteraction);
+
+        // === МУЗЫКА ===
+        const bgMusic = document.getElementById('bg-music');
+        let musicPlaying = false;
+        bgMusic.volume = 0.3;
+
+        function toggleMusic() {
+            sfx.playClick();
+            if (musicPlaying) {
+                bgMusic.pause();
+                musicPlaying = false;
+                document.getElementById('music-btn').innerText = "🎵 Музыка: Выкл";
+            } else {
+                bgMusic.play().then(() => {
+                    musicPlaying = true;
+                    document.getElementById('music-btn').innerText = "🎵 Музыка: Вкл";
+                }).catch(() => {});
+            }
+        }
+
+        function setVolume(val) { bgMusic.volume = val; }
+
+        // === БЕЗОПАСНОСТЬ И РЕЖИМ АДМИНА ===
+        // SHA-256 хэш пароля (В коде нет открытого пароля!)
         const TARGET_HASH = "158a323a7ba44870f23d96f1516dd70aa48e9a72db4ebb026b0a89e212a208ab";
+        let isEditMode = false;
+
         async function sha256(str) {
             const buffer = new TextEncoder().encode(str);
             const hash = await crypto.subtle.digest('SHA-256', buffer);
             return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
         }
 
-        async function login() {
-            const input = document.getElementById('pass-input').value.trim();
-            if ((await sha256(input)) === TARGET_HASH) {
-                document.getElementById('auth-screen').style.display = 'none';
-                document.getElementById('room-screen').style.display = 'flex';
+        function toggleAdminMode() {
+            sfx.playClick();
+            if (isEditMode) {
+                // Выход из админ-режима
+                isEditMode = false;
+                document.body.classList.remove('edit-mode');
+                document.getElementById('admin-toggle-btn').innerText = "🔒 Вход (Админ)";
+                renderThreads();
             } else {
-                document.getElementById('error-msg').innerText = "Неверный код доступа";
+                // Открытие окна входа
+                document.getElementById('admin-pass-input').value = '';
+                document.getElementById('auth-error-msg').innerText = '';
+                document.getElementById('auth-modal').style.display = 'flex';
             }
         }
 
-        // Подсвечивание планшета при наведении на hotspot
+        function closeAuthModal() {
+            sfx.playClick();
+            document.getElementById('auth-modal').style.display = 'none';
+        }
+
+        async function confirmAdminLogin() {
+            sfx.playClick();
+            const input = document.getElementById('admin-pass-input').value.trim();
+            if ((await sha256(input)) === TARGET_HASH) {
+                isEditMode = true;
+                document.body.classList.add('edit-mode');
+                document.getElementById('admin-toggle-btn').innerText = "🔓 Выйти (Админ)";
+                closeAuthModal();
+                renderThreads();
+            } else {
+                document.getElementById('auth-error-msg').innerText = "Неверный PIN-код";
+            }
+        }
+
+        // Подсвечивание планшета при наведении
         const tabletBtn = document.getElementById('tablet-btn');
         const roomBgHover = document.getElementById('room-bg-hover');
         tabletBtn.addEventListener('mouseenter', () => roomBgHover.style.opacity = '1');
         tabletBtn.addEventListener('mouseleave', () => roomBgHover.style.opacity = '0');
 
         function zoomIntoTablet() {
+            sfx.playTabletZoom();
             document.getElementById('room-screen').classList.add('zoom-active');
             setTimeout(() => {
                 document.getElementById('room-screen').style.display = 'none';
@@ -305,21 +433,63 @@
             }, 700);
         }
 
-        // === ДВИЖОК ДОСКИ ===
+        // === ДВИЖОК ДОСКИ И ЗУМА ===
         const viewport = document.getElementById('viewport');
         const workspace = document.getElementById('workspace');
         const svgLayer = document.getElementById('svg-layer');
 
-        let panX = -3500, panY = -3500, isPanning = false, startX, startY;
+        let panX = -3500, panY = -3500, zoom = 1;
+        const MIN_ZOOM = 0.35, MAX_ZOOM = 2.2;
+        let isPanning = false, startX, startY;
         let cards = [], links = [], cardCounter = 0;
         let isDraggingCard = false, activeCard = null;
         let isDrawingThread = false, threadStartCardId = null, tempThread = null;
         let tempModalImageData = null;
 
+        function updateWorkspaceTransform() {
+            workspace.style.transform = `translate(${panX}px, ${panY}px) scale(${zoom})`;
+            document.getElementById('zoom-val').innerText = `${Math.round(zoom * 100)}%`;
+            updateThreads();
+        }
+
+        function changeZoom(delta) {
+            sfx.playClick();
+            const newZoom = Math.min(Math.max(zoom + delta, MIN_ZOOM), MAX_ZOOM);
+            const centerPointX = window.innerWidth / 2;
+            const centerPointY = window.innerHeight / 2;
+            panX -= (centerPointX - panX) * (newZoom / zoom - 1);
+            panY -= (centerPointY - panY) * (newZoom / zoom - 1);
+            zoom = newZoom;
+            updateWorkspaceTransform();
+        }
+
+        function resetZoom() {
+            sfx.playClick();
+            zoom = 1;
+            updateWorkspaceTransform();
+        }
+
+        // Зум колесиком мыши в точку курсора
+        viewport.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const zoomSpeed = 0.0012;
+            const delta = -e.deltaY * zoomSpeed;
+            const newZoom = Math.min(Math.max(zoom + delta, MIN_ZOOM), MAX_ZOOM);
+
+            if (newZoom !== zoom) {
+                const mouseX = e.clientX;
+                const mouseY = e.clientY;
+                panX -= (mouseX - panX) * (newZoom / zoom - 1);
+                panY -= (mouseY - panY) * (newZoom / zoom - 1);
+                zoom = newZoom;
+                updateWorkspaceTransform();
+            }
+        }, { passive: false });
+
         function initBoard() {
-            workspace.style.transform = `translate(${panX}px, ${panY}px)`;
+            updateWorkspaceTransform();
             
-            // Синхронизация с Firebase в реальном времени
+            // Синхронизация с БД
             if (db) {
                 db.ref('family_board').on('value', (snapshot) => {
                     const data = snapshot.val() || { cards: [], links: [] };
@@ -336,7 +506,7 @@
         }
 
         function saveToCloud() {
-            if (db) {
+            if (db && isEditMode) {
                 db.ref('family_board').set({
                     cards: cards.map(c => c.data),
                     links: links
@@ -358,22 +528,26 @@
         window.addEventListener('mousemove', (e) => {
             if (isPanning) {
                 panX = e.clientX - startX; panY = e.clientY - startY;
-                workspace.style.transform = `translate(${panX}px, ${panY}px)`;
+                updateWorkspaceTransform();
             }
-            if (isDraggingCard && activeCard) {
-                const x = e.clientX - panX - activeCard.offsetX;
-                const y = e.clientY - panY - activeCard.offsetY;
+            if (isDraggingCard && activeCard && isEditMode) {
+                const rect = workspace.getBoundingClientRect();
+                const x = (e.clientX - rect.left) / zoom - activeCard.offsetX;
+                const y = (e.clientY - rect.top) / zoom - activeCard.offsetY;
                 activeCard.el.style.left = `${x}px`; activeCard.el.style.top = `${y}px`;
                 activeCard.data.left = x; activeCard.data.top = y;
                 updateThreads();
             }
-            if (isDrawingThread && tempThread) {
+            if (isDrawingThread && tempThread && isEditMode) {
                 const rect = workspace.getBoundingClientRect();
-                const mouseX = e.clientX - rect.left, mouseY = e.clientY - rect.top;
-                const startCard = cards.find(c => c.id === threadStartCardId).el;
-                const sRect = startCard.getBoundingClientRect();
-                const sx = sRect.left + sRect.width / 2 - rect.left, sy = sRect.bottom - 8 - rect.top;
-                tempThread.setAttribute('d', `M ${sx} ${sy} C ${sx} ${(sy + mouseY)/2}, ${mouseX} ${(sy + mouseY)/2}, ${mouseX} ${mouseY}`);
+                const mouseX = (e.clientX - rect.left) / zoom;
+                const mouseY = (e.clientY - rect.top) / zoom;
+                const startCard = cards.find(c => c.id === threadStartCardId);
+                if (startCard && startCard.el) {
+                    const sx = startCard.data.left + 140;
+                    const sy = startCard.data.top + startCard.el.offsetHeight - 8;
+                    tempThread.setAttribute('d', `M ${sx} ${sy} C ${sx} ${(sy + mouseY)/2}, ${mouseX} ${(sy + mouseY)/2}, ${mouseX} ${mouseY}`);
+                }
             }
         });
 
@@ -384,7 +558,9 @@
         });
 
         function openAddModal() {
-            document.getElementById('modal-overlay').style.display = 'flex';
+            if (!isEditMode) return;
+            sfx.playClick();
+            document.getElementById('add-modal').style.display = 'flex';
             document.getElementById('modal-name').value = '';
             document.getElementById('modal-role').value = '';
             document.getElementById('modal-desc').value = '';
@@ -392,7 +568,7 @@
             tempModalImageData = null;
         }
 
-        function closeAddModal() { document.getElementById('modal-overlay').style.display = 'none'; }
+        function closeAddModal() { sfx.playClick(); document.getElementById('add-modal').style.display = 'none'; }
 
         function previewModalImage(input) {
             const file = input.files[0];
@@ -407,6 +583,8 @@
         }
 
         function confirmAddCard() {
+            if (!isEditMode) return;
+            sfx.playClick();
             cardCounter++;
             const cardData = {
                 id: cardCounter,
@@ -414,8 +592,8 @@
                 role: document.getElementById('modal-role').value.trim() || "Семья",
                 desc: document.getElementById('modal-desc').value.trim() || "",
                 imgSrc: tempModalImageData || "https://images.unsplash.com/photo-1518173946687-a4c8892bbd9f?auto=format&fit=crop&w=300&q=80",
-                left: -panX + window.innerWidth / 2 - 140,
-                top: -panY + window.innerHeight / 2 - 160
+                left: (-panX + window.innerWidth / 2 - 140 * zoom) / zoom,
+                top: (-panY + window.innerHeight / 2 - 160 * zoom) / zoom
             };
             cards.push({ id: cardData.id, el: null, data: cardData });
             saveToCloud();
@@ -429,12 +607,12 @@
             card.innerHTML = `
                 <div class="card-header">
                     <span class="card-tag">${data.role}</span>
-                    <button class="delete-card" onclick="deleteCard(${data.id})">✕</button>
+                    <button class="delete-card admin-only" onclick="deleteCard(${data.id})">✕</button>
                 </div>
                 <div class="card-name">${data.name}</div>
                 <div class="card-img-container"><img src="${data.imgSrc}"></div>
                 <textarea class="card-notes" rows="3" placeholder="Заметки...">${data.desc}</textarea>
-                <div class="connector"></div>
+                <div class="connector admin-only"></div>
             `;
             attachCardEvents(card, data.id, data);
             workspace.appendChild(card);
@@ -444,28 +622,39 @@
 
         function attachCardEvents(card, id, dataObj) {
             card.addEventListener('mousedown', (e) => {
+                if (!isEditMode) return;
                 if (['TEXTAREA', 'BUTTON'].includes(e.target.tagName) || e.target.classList.contains('connector')) return;
                 isDraggingCard = true;
-                activeCard = { el: card, data: dataObj, offsetX: e.clientX - card.getBoundingClientRect().left, offsetY: e.clientY - card.getBoundingClientRect().top };
+                const cardRect = card.getBoundingClientRect();
+                activeCard = { 
+                    el: card, 
+                    data: dataObj, 
+                    offsetX: (e.clientX - cardRect.left) / zoom, 
+                    offsetY: (e.clientY - cardRect.top) / zoom 
+                };
             });
 
             card.querySelector('.card-notes').addEventListener('change', (e) => {
+                if (!isEditMode) return;
                 dataObj.desc = e.target.value;
                 saveToCloud();
             });
 
             const connector = card.querySelector('.connector');
             connector.addEventListener('mousedown', (e) => {
+                if (!isEditMode) return;
                 e.stopPropagation(); isDrawingThread = true; threadStartCardId = id;
                 tempThread = document.createElementNS('http://www.w3.org/2000/svg', 'path');
                 tempThread.classList.add('thread'); svgLayer.appendChild(tempThread);
             });
 
             connector.addEventListener('mouseup', (e) => {
+                if (!isEditMode) return;
                 e.stopPropagation();
                 if (isDrawingThread && threadStartCardId && threadStartCardId !== id) {
                     if (!links.some(l => (l.from === threadStartCardId && l.to === id) || (l.from === id && l.to === threadStartCardId))) {
                         links.push({ from: threadStartCardId, to: id });
+                        sfx.playConnect();
                         saveToCloud();
                     }
                 }
@@ -473,6 +662,8 @@
         }
 
         function deleteCard(id) {
+            if (!isEditMode) return;
+            sfx.playDelete();
             cards = cards.filter(c => c.id !== id);
             links = links.filter(l => l.from !== id && l.to !== id);
             saveToCloud();
@@ -483,22 +674,26 @@
             links.forEach((link, index) => {
                 const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
                 path.classList.add('thread'); path.dataset.index = index;
-                path.addEventListener('click', () => { links.splice(index, 1); saveToCloud(); });
+                if (isEditMode) {
+                    path.addEventListener('click', () => { sfx.playDelete(); links.splice(index, 1); saveToCloud(); });
+                }
                 svgLayer.appendChild(path);
             });
             updateThreads();
         }
 
         function updateThreads() {
-            const rect = workspace.getBoundingClientRect();
             document.querySelectorAll('path.thread[data-index]').forEach(path => {
                 const link = links[parseInt(path.dataset.index)];
                 if (!link) return;
                 const c1 = cards.find(c => c.id === link.from), c2 = cards.find(c => c.id === link.to);
                 if (!c1 || !c2 || !c1.el || !c2.el) return;
-                const r1 = c1.el.getBoundingClientRect(), r2 = c2.el.getBoundingClientRect();
-                const x1 = r1.left + r1.width / 2 - rect.left, y1 = r1.bottom - 8 - rect.top;
-                const x2 = r2.left + r2.width / 2 - rect.left, y2 = r2.top + 8 - rect.top;
+                
+                const x1 = c1.data.left + 140;
+                const y1 = c1.data.top + c1.el.offsetHeight - 8;
+                const x2 = c2.data.left + 140;
+                const y2 = c2.data.top + 8;
+                
                 path.setAttribute('d', `M ${x1} ${y1} C ${x1} ${(y1 + y2)/2}, ${x2} ${(y1 + y2)/2}, ${x2} ${y2}`);
             });
         }
