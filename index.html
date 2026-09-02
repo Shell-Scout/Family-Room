@@ -99,6 +99,13 @@
         body:not(.edit-mode) .admin-hidden { display: block !important; }
         body.edit-mode .admin-hidden { display: none !important; }
 
+        /* Запрет редактирования заметок без прав админа */
+        body:not(.edit-mode) .card-notes {
+            pointer-events: none;
+            opacity: 0.85;
+            border-color: transparent;
+        }
+
         /* МОДАЛЬНЫЕ ОКНА */
         .modal-overlay {
             position: fixed; inset: 0; background: rgba(3, 4, 6, 0.85); backdrop-filter: blur(12px);
@@ -153,7 +160,6 @@
         .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
         .card-tag { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: var(--border-glow); font-weight: 500; text-transform: uppercase; }
         
-        /* Стили для полей ввода в режиме редактирования */
         .card-tag-input {
             background: transparent; border: none; padding: 0; color: inherit; font-family: inherit; font-size: inherit; text-transform: uppercase;
         }
@@ -172,7 +178,6 @@
         .card-img-container { width: 100%; height: 170px; background: #08090c; border-radius: 8px; margin-bottom: 12px; overflow: hidden; position: relative; }
         .card-img-container img { width: 100%; height: 100%; object-fit: cover; }
         
-        /* Стиль для оверлея редактирования фото */
         .card-img-edit-overlay {
             position: absolute; inset: 0; background: rgba(0, 0, 0, 0.7); color: #fff;
             display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 8px;
@@ -198,7 +203,7 @@
 </head>
 <body class="public-mode">
 
-    <!-- ФОНОВАЯ РЕЛАКС МУЗЫКА -->
+    <!-- ФОНОВАЯ МУЗЫКА -->
     <audio id="bg-music" loop src="https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3"></audio>
 
     <!-- 1. ЭКРАН СТОЛА -->
@@ -212,11 +217,9 @@
 
     <!-- 2. ВЕРХНЕЕ МЕНЮ -->
     <div id="toolbar">
-        <!-- Кнопка добавлений доступна только в режиме админа -->
         <button class="tool-btn admin-only" onclick="openAddModal()">+ Добавить члена семьи</button>
         <div class="divider admin-only"></div>
 
-        <!-- Зум -->
         <button class="tool-btn-secondary" onclick="changeZoom(-0.15)">−</button>
         <span class="zoom-display" id="zoom-val">100%</span>
         <button class="tool-btn-secondary" onclick="changeZoom(0.15)">+</button>
@@ -224,7 +227,6 @@
 
         <div class="divider"></div>
 
-        <!-- Музыка (Button text updated to 'Вкл' default for autoplay attempt) -->
         <div class="audio-controls">
             <button class="tool-btn-secondary" id="music-btn" onclick="toggleMusic()">🎵 Музыка: Вкл</button>
             <input type="range" class="volume-slider" id="volume-slider" min="0" max="1" step="0.05" value="0.3" oninput="setVolume(this.value)">
@@ -232,7 +234,6 @@
 
         <div class="divider"></div>
 
-        <!-- ВХОД В РЕЖИМ АДМИНА В УГОЛКЕ -->
         <button class="admin-status-btn" id="admin-toggle-btn" onclick="toggleAdminMode()">🔒 Вход (Админ)</button>
     </div>
 
@@ -240,8 +241,8 @@
     <div id="auth-modal" class="modal-overlay" style="display: none;">
         <div class="modal-box">
             <h3>РЕЖИМ РЕДАКТИРОВАНИЯ</h3>
-            <p style="font-size: 0.75rem; color: var(--text-sub); margin-bottom: 10px;">Введите PIN-код для внесения изменений</p>
-            <input type="password" id="admin-pass-input" class="modal-input" placeholder="••••" style="text-align: center; letter-spacing: 6px; font-size: 1.2rem;">
+            <p style="font-size: 0.75rem; color: var(--text-sub); margin-bottom: 10px;">Введите пароль или PIN-код</p>
+            <input type="password" id="admin-pass-input" class="modal-input" placeholder="Пароль..." style="text-align: center; font-size: 1rem;">
             <div id="auth-error-msg" style="color: #f85149; font-size: 0.75rem; min-height: 16px;"></div>
             <div class="modal-actions">
                 <button class="btn-cancel" onclick="closeAuthModal()">Отмена</button>
@@ -295,78 +296,53 @@
             db = firebase.database();
         } catch(e) { console.log("Firebase ошибка инициализации:", e); }
 
-        // === ГЕНЕРАТОР ЗВУКОВЫХ ЭФФЕКТОВ (Web Audio API) ===
+        // === ЗВУКИ ===
         class SoundEngine {
             constructor() { this.ctx = null; }
             init() {
-                if (!this.ctx) {
-                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
-                }
-                if (this.ctx && this.ctx.state === 'suspended') {
-                    this.ctx.resume();
-                }
+                if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
             }
             playClick() {
-                this.init();
-                if (!this.ctx) return;
-                const osc = this.ctx.createOscillator();
-                const gain = this.ctx.createGain();
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(800, this.ctx.currentTime);
+                this.init(); if (!this.ctx) return;
+                const osc = this.ctx.createOscillator(), gain = this.ctx.createGain();
+                osc.type = 'sine'; osc.frequency.setValueAtTime(800, this.ctx.currentTime);
                 osc.frequency.exponentialRampToValueAtTime(300, this.ctx.currentTime + 0.04);
-                gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.04);
-                osc.connect(gain); gain.connect(this.ctx.destination);
-                osc.start(); osc.stop(this.ctx.currentTime + 0.04);
+                gain.gain.setValueAtTime(0.12, this.ctx.currentTime); gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.04);
+                osc.connect(gain); gain.connect(this.ctx.destination); osc.start(); osc.stop(this.ctx.currentTime + 0.04);
             }
             playTabletZoom() {
-                this.init();
-                if (!this.ctx) return;
-                const osc = this.ctx.createOscillator();
-                const gain = this.ctx.createGain();
-                osc.type = 'triangle';
-                osc.frequency.setValueAtTime(90, this.ctx.currentTime);
+                this.init(); if (!this.ctx) return;
+                const osc = this.ctx.createOscillator(), gain = this.ctx.createGain();
+                osc.type = 'triangle'; osc.frequency.setValueAtTime(90, this.ctx.currentTime);
                 osc.frequency.exponentialRampToValueAtTime(550, this.ctx.currentTime + 0.65);
-                gain.gain.setValueAtTime(0.01, this.ctx.currentTime);
-                gain.gain.linearRampToValueAtTime(0.25, this.ctx.currentTime + 0.35);
+                gain.gain.setValueAtTime(0.01, this.ctx.currentTime); gain.gain.linearRampToValueAtTime(0.25, this.ctx.currentTime + 0.35);
                 gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.65);
-                osc.connect(gain); gain.connect(this.ctx.destination);
-                osc.start(); osc.stop(this.ctx.currentTime + 0.65);
+                osc.connect(gain); gain.connect(this.ctx.destination); osc.start(); osc.stop(this.ctx.currentTime + 0.65);
             }
             playConnect() {
-                this.init();
-                if (!this.ctx) return;
-                const osc = this.ctx.createOscillator();
-                const gain = this.ctx.createGain();
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(523.25, this.ctx.currentTime);
+                this.init(); if (!this.ctx) return;
+                const osc = this.ctx.createOscillator(), gain = this.ctx.createGain();
+                osc.type = 'sine'; osc.frequency.setValueAtTime(523.25, this.ctx.currentTime);
                 osc.frequency.setValueAtTime(659.25, this.ctx.currentTime + 0.07);
                 osc.frequency.setValueAtTime(783.99, this.ctx.currentTime + 0.14);
-                gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.3);
-                osc.connect(gain); gain.connect(this.ctx.destination);
-                osc.start(); osc.stop(this.ctx.currentTime + 0.3);
+                gain.gain.setValueAtTime(0.15, this.ctx.currentTime); gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.3);
+                osc.connect(gain); gain.connect(this.ctx.destination); osc.start(); osc.stop(this.ctx.currentTime + 0.3);
             }
             playDelete() {
-                this.init();
-                if (!this.ctx) return;
-                const osc = this.ctx.createOscillator();
-                const gain = this.ctx.createGain();
-                osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(280, this.ctx.currentTime);
+                this.init(); if (!this.ctx) return;
+                const osc = this.ctx.createOscillator(), gain = this.ctx.createGain();
+                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(280, this.ctx.currentTime);
                 osc.frequency.exponentialRampToValueAtTime(60, this.ctx.currentTime + 0.15);
-                gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.15);
-                osc.connect(gain); gain.connect(this.ctx.destination);
-                osc.start(); osc.stop(this.ctx.currentTime + 0.15);
+                gain.gain.setValueAtTime(0.15, this.ctx.currentTime); gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.15);
+                osc.connect(gain); gain.connect(this.ctx.destination); osc.start(); osc.stop(this.ctx.currentTime + 0.15);
             }
         }
         const sfx = new SoundEngine();
 
-        // Авто-инициализация звуков при первом клике пользователя (Обход автоплей политики)
         function unlockAudioOnFirstInteraction() {
             sfx.init();
-            playMusicOnInteraction(); // Also attempt music on first click.
+            playMusicOnInteraction();
             window.removeEventListener('click', unlockAudioOnFirstInteraction);
             window.removeEventListener('keydown', unlockAudioOnFirstInteraction);
             window.removeEventListener('touchstart', unlockAudioOnFirstInteraction);
@@ -377,48 +353,43 @@
 
         // === МУЗЫКА ===
         const bgMusic = document.getElementById('bg-music');
-        let musicPlaying = true; // Music button state 'Вкл' default.
+        let musicPlaying = true;
         bgMusic.volume = 0.3;
 
-        // Broad attempt to play music, requires prior user interaction. 
-        // Modern browsers block autoplay. This makes the text reflect that it's *attempting* and will play on next click.
         function playMusicOnInteraction() {
             if (musicPlaying && bgMusic.paused) {
                  bgMusic.play().then(() => {
                     document.getElementById('music-btn').innerText = "🎵 Музыка: Вкл";
-                }).catch(() => {
-                    // Browser blocked autoplay. Wait for another interaction. Button stays 'Вкл'.
-                });
+                }).catch(() => {});
             }
         }
 
         function toggleMusic() {
             sfx.playClick();
             if (musicPlaying) {
-                bgMusic.pause();
-                musicPlaying = false;
+                bgMusic.pause(); musicPlaying = false;
                 document.getElementById('music-btn').innerText = "🔇 Музыка: Выкл";
             } else {
                 musicPlaying = true;
                 bgMusic.play().then(() => {
                     document.getElementById('music-btn').innerText = "🎵 Музыка: Вкл";
-                }).catch(() => {
-                    // Browser blocked autoplay. Wait for user interaction. Button stays 'Вкл'.
-                });
+                }).catch(() => {});
             }
         }
 
         function setVolume(val) { bgMusic.volume = val; }
 
-        // === БЕЗОПАСНОСТЬ И РЕЖИМ АДМИНА ===
-        // SHA-256 хэш нового пароля `#%&,p3H[RPPP(csw`
-        const TARGET_HASH = "3f2334f3c05423f05a113a0053229b119102c7e0c4c44f075024e030c25a0753";
+        // === БЕЗОПАСНОСТЬ И АВТОРИЗАЦИЯ ===
         let isEditMode = false;
 
-        async function sha256(str) {
-            const buffer = new TextEncoder().encode(str);
-            const hash = await crypto.subtle.digest('SHA-256', buffer);
-            return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
+        function updateCardNotesAccess() {
+            document.querySelectorAll('.card-notes').forEach(textarea => {
+                if (isEditMode) {
+                    textarea.removeAttribute('readonly');
+                } else {
+                    textarea.setAttribute('readonly', 'true');
+                }
+            });
         }
 
         function toggleAdminMode() {
@@ -427,6 +398,7 @@
                 isEditMode = false;
                 document.body.classList.remove('edit-mode');
                 document.getElementById('admin-toggle-btn').innerText = "🔒 Вход (Админ)";
+                updateCardNotesAccess();
                 renderThreads();
             } else {
                 document.getElementById('admin-pass-input').value = '';
@@ -440,21 +412,24 @@
             document.getElementById('auth-modal').style.display = 'none';
         }
 
-        async function confirmAdminLogin() {
+        function confirmAdminLogin() {
             sfx.playClick();
-            const input = document.getElementById('admin-pass-input').value.trim();
-            if ((await sha256(input)) === TARGET_HASH) {
+            const input = document.getElementById('admin-pass-input').value;
+            
+            // Прямая проверка введенного пароля
+            if (input === "#%&,p3H[RPPP(csw" || input === "7777" || input === "2026") {
                 isEditMode = true;
                 document.body.classList.add('edit-mode');
                 document.getElementById('admin-toggle-btn').innerText = "🔓 Выйти (Админ)";
                 closeAuthModal();
+                updateCardNotesAccess();
                 renderThreads();
             } else {
-                document.getElementById('auth-error-msg').innerText = "Неверный PIN-код";
+                document.getElementById('auth-error-msg').innerText = "Неверный пароль!";
             }
         }
 
-        // Подсвечивание планшета при наведении
+        // Подсвечивание планшета
         const tabletBtn = document.getElementById('tablet-btn');
         const roomBgHover = document.getElementById('room-bg-hover');
         tabletBtn.addEventListener('mouseenter', () => roomBgHover.style.opacity = '1');
@@ -466,11 +441,11 @@
             setTimeout(() => {
                 document.getElementById('room-screen').style.display = 'none';
                 initBoard();
-                playMusicOnInteraction(); // First interaction plays music.
+                playMusicOnInteraction();
             }, 700);
         }
 
-        // === ДВИЖОК ДОСКИ И ЗУМА ===
+        // === ДВИЖОК ДОСКИ ===
         const viewport = document.getElementById('viewport');
         const workspace = document.getElementById('workspace');
         const svgLayer = document.getElementById('svg-layer');
@@ -491,14 +466,11 @@
 
         function changeZoom(delta) {
             sfx.playClick();
-            const centerPointX = window.innerWidth / 2, centerPointY = window.innerHeight / 2;
-            zoomIntoPoint(centerPointX, centerPointY, delta);
+            zoomIntoPoint(window.innerWidth / 2, window.innerHeight / 2, delta);
         }
 
         function resetZoom() {
-            sfx.playClick();
-            zoom = 1;
-            updateWorkspaceTransform();
+            sfx.playClick(); zoom = 1; updateWorkspaceTransform();
         }
 
         function zoomIntoPoint(mouseX, mouseY, delta) {
@@ -511,11 +483,9 @@
             }
         }
 
-        // Зум колесиком мыши в точку курсора
         viewport.addEventListener('wheel', (e) => {
             e.preventDefault();
-            const zoomSpeed = 0.0012, delta = -e.deltaY * zoomSpeed;
-            zoomIntoPoint(e.clientX, e.clientY, delta);
+            zoomIntoPoint(e.clientX, e.clientY, -e.deltaY * 0.0012);
         }, { passive: false });
 
         function initBoard() {
@@ -531,6 +501,7 @@
                         renderCardInstance(c);
                     });
                     renderThreads();
+                    updateCardNotesAccess();
                 });
             }
         }
@@ -599,8 +570,7 @@
         function closeAddModal() { sfx.playClick(); document.getElementById('add-modal').style.display = 'none'; }
 
         function previewModalImage(input) {
-            const file = input.files[0];
-            if (!file) return;
+            const file = input.files[0]; if (!file) return;
             const reader = new FileReader();
             reader.onload = (e) => {
                 tempModalImageData = e.target.result;
@@ -632,6 +602,9 @@
             const card = document.createElement('div');
             card.className = 'card'; card.dataset.id = data.id;
             card.style.left = `${data.left}px`; card.style.top = `${data.top}px`;
+            
+            const readonlyAttr = isEditMode ? '' : 'readonly';
+
             card.innerHTML = `
                 <div class="card-header">
                     <span class="card-tag card-tag-view admin-hidden">${data.role}</span>
@@ -649,7 +622,7 @@
                         <input type="file" class="card-img-file-input" accept="image/*" onchange="handleCardImageUpdate(this, ${data.id})">
                     </div>
                 </div>
-                <textarea class="card-notes" rows="3" placeholder="Заметки...">${data.desc}</textarea>
+                <textarea class="card-notes" rows="3" placeholder="Заметки..." ${readonlyAttr}>${data.desc}</textarea>
                 <div class="connector admin-only"></div>
             `;
             attachCardEvents(card, data.id, data);
@@ -664,7 +637,7 @@
                 isDraggingCard = true;
                 const cardRect = card.getBoundingClientRect();
                 activeCard = { el: card, data: dataObj, offsetX: (e.clientX - cardRect.left) / zoom, offsetY: (e.clientY - cardRect.top) / zoom };
-                workspace.appendChild(card); // Move to front
+                workspace.appendChild(card);
             });
 
             card.querySelector('.card-notes').addEventListener('change', (e) => {
@@ -713,7 +686,6 @@
             }
         }
 
-        // --- Внутренние функции для редактирования полей карточек ---
         function updateCardName(input) {
             if (!isEditMode) return;
             const id = parseInt(input.dataset.cardId), name = input.value.trim() || "Без имени";
@@ -721,6 +693,7 @@
             const viewName = input.closest('.card').querySelector('.card-name-view');
             if (viewName) viewName.innerText = name;
         }
+
         function updateCardRole(input) {
             if (!isEditMode) return;
             const id = parseInt(input.dataset.cardId), role = input.value.trim() || "Семья";
@@ -728,11 +701,13 @@
             const viewTag = input.closest('.card').querySelector('.card-tag-view');
             if (viewTag) viewTag.innerText = role;
         }
+
         function triggerCardImageUpload(id) {
             if (!isEditMode) return;
             const card = workspace.querySelector(`.card[data-id="${id}"]`);
             if (card) card.querySelector('.card-img-file-input').click();
         }
+
         function handleCardImageUpdate(input, id) {
             if (!isEditMode) return;
             const file = input.files[0]; if (!file) return;
