@@ -4,14 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="author" content="fox">
-    <title>Рабочий стол • Семья</title>
+    <title>ДОСКА • Семья</title>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-canvas: #08090c;
-            --card-bg: #11141a;
+            --bg-canvas: #090b10;
+            --card-bg: #11141c;
             --border-glow: #00f2fe;
-            --accent-cyan: #00e5ff;
+            --accent-green: #00ff66;
             --accent-purple: #7928ca;
             --text-main: #e6edf3;
             --text-sub: #8b949e;
@@ -28,47 +28,47 @@
             height: 100vh;
         }
 
-        /* ГЛИТЧИ И СКАНЛАЙНЫ ПО КРАЯМ ЭКРАНА */
+        /* CRT-ЭФФЕКТ И ГЛИТЧИ ПО КРАЯМ ЭКРАНА */
         .edge-glitch-overlay {
             position: fixed; inset: 0; pointer-events: none; z-index: 8000;
-            box-shadow: inset 0 0 90px rgba(0, 242, 254, 0.1), inset 0 0 35px rgba(121, 40, 202, 0.15);
+            box-shadow: inset 0 0 100px rgba(0, 242, 254, 0.1), inset 0 0 40px rgba(0, 255, 102, 0.1);
             background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
-                        linear-gradient(90deg, rgba(255, 0, 0, 0.01), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.02));
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.02));
             background-size: 100% 4px, 6px 100%;
             animation: edgeFlicker 5s infinite alternate;
         }
 
         @keyframes edgeFlicker {
             0%, 100% { opacity: 0.85; }
-            50% { opacity: 1; box-shadow: inset 0 0 110px rgba(0, 242, 254, 0.16), inset 0 0 45px rgba(121, 40, 202, 0.2); }
-            52% { opacity: 0.5; }
+            50% { opacity: 1; box-shadow: inset 0 0 120px rgba(0, 242, 254, 0.18), inset 0 0 50px rgba(121, 40, 202, 0.2); }
+            52% { opacity: 0.6; }
             54% { opacity: 0.95; }
         }
 
-        /* КАНВАС ДЛЯ НЕОНОВОГО ШЛЕЙФА МЫШИ */
+        /* КАНВАС ДЛЯ ХАКЕРСКОГО СЛЕДА КУРСОРA (Цифры и глифы) */
         #cursor-canvas {
             position: fixed; inset: 0; pointer-events: none; z-index: 9999;
         }
 
-        /* ЭКРАН ВХОДА (ПАРОЛЬ) */
+        /* ЭКРАН ВХОДА (ПАРОЛЬ 2026) */
         #auth-screen {
             position: fixed; inset: 0; background: #030406;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             z-index: 10000;
         }
         .auth-box {
-            background: rgba(17, 20, 26, 0.95); padding: 40px; border-radius: 12px;
+            background: rgba(17, 20, 28, 0.98); padding: 40px; border-radius: 12px;
             border: 1px solid rgba(0, 242, 254, 0.2); text-align: center;
-            box-shadow: 0 0 50px rgba(0, 0, 0, 0.9), 0 0 30px rgba(0, 242, 254, 0.1); max-width: 360px; width: 100%;
+            box-shadow: 0 0 60px rgba(0, 0, 0, 0.9), 0 0 30px rgba(0, 242, 254, 0.1); max-width: 360px; width: 100%;
             backdrop-filter: blur(10px);
         }
         .auth-box h2 { 
-            font-family: 'JetBrains Mono', monospace; font-size: 1.1rem; margin-bottom: 6px;
+            font-family: 'JetBrains Mono', monospace; font-size: 1.15rem; margin-bottom: 6px;
             color: #f0f6fc; letter-spacing: 2px;
         }
         .auth-box p { font-size: 0.75rem; color: var(--text-sub); margin-bottom: 24px; font-family: 'JetBrains Mono', monospace; }
         .auth-box input {
-            width: 100%; padding: 12px; background: #08090c; border: 1px solid #21262d; color: var(--border-glow);
+            width: 100%; padding: 12px; background: #050608; border: 1px solid #21262d; color: var(--border-glow);
             font-family: 'JetBrains Mono', monospace; font-size: 1.4rem; letter-spacing: 6px; text-align: center; margin-bottom: 18px; border-radius: 6px; outline: none;
             transition: all 0.2s;
         }
@@ -84,10 +84,16 @@
             position: fixed; inset: 0; z-index: 9000; background: #000;
             display: flex; align-items: center; justify-content: center; overflow: hidden;
         }
-        .room-bg-img {
-            position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+        #room-bg-group {
+            position: absolute; display: block;
+            width: 4096px; height: 2288px; /* ЗАФИКСИРОВАННЫЕ РАЗМЕРЫ */
+            left: 50%; top: 50%;
+            transform: translate(-50%, -50%) scale(1);
             transition: transform 0.8s cubic-bezier(0.7, 0, 0.25, 1), opacity 0.35s ease;
-            transform-origin: 52% 58%;
+        }
+        .room-bg-img {
+            position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; /* СОХРАНЕНИЕ ПРОПОРЦИЙ */
+            transition: opacity 0.35s ease;
         }
         #room-bg-hover { opacity: 0; pointer-events: none; }
         
@@ -98,15 +104,15 @@
         }
 
         /* АНИМАЦИЯ ЗУМА В ПЛАНШЕТ */
-        .zoom-active .room-bg-img {
-            transform: scale(4.8) translate(-2%, -3%);
-            opacity: 0 !important;
+        .zoom-active #room-bg-group {
+            transform: translate(-50%, -50%) scale(4.8);
+            opacity: 0;
         }
         .zoom-active .tablet-hotspot {
             opacity: 0; pointer-events: none;
         }
 
-        /* ВЕРХНЯЯ ПАНЕЛЬ */
+        /* ВЕРХНЯЯ ПАНЕЛЬ ДОСКИ */
         #toolbar {
             position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
             background: rgba(17, 20, 26, 0.85); backdrop-filter: blur(16px);
@@ -157,11 +163,13 @@
                 radial-gradient(rgba(0, 242, 254, 0.07) 1px, transparent 1px);
             background-size: 32px 32px;
             transform-origin: 0 0;
+            overflow: hidden;
         }
-
+        
+        /* СЛОЙ МАГИЧЕСКИХ НИТЕЙ */
         #svg-layer { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2; }
         path.thread {
-            stroke: var(--accent-cyan); stroke-width: 2.5; fill: none; stroke-linecap: round;
+            stroke: var(--border-glow); stroke-width: 2.5; fill: none; stroke-linecap: round;
             filter: drop-shadow(0 0 6px rgba(0, 229, 255, 0.6)); pointer-events: stroke; cursor: pointer;
             transition: stroke 0.2s;
         }
@@ -231,8 +239,10 @@
 
     <!-- 2. ЭКРАН С ФОТО КОМНАТЫ И ПЛАНШЕТОМ -->
     <div id="room-screen" style="display: none;">
-        <img id="room-bg" class="room-bg-img" src="desk.jpg" alt="Стол">
-        <img id="room-bg-hover" class="room-bg-img" src="deskn.jpg" alt="Планшет выделен">
+        <div id="room-bg-group">
+            <img id="room-bg" class="room-bg-img" src="desk.jpg" alt="Стол">
+            <img id="room-bg-hover" class="room-bg-img" src="deskn.jpg" alt="Планшет выделен">
+        </div>
         
         <!-- Невидимый кликабельный планшет -->
         <div class="tablet-hotspot" id="tablet-btn" onclick="zoomIntoTablet()" title="Открыть доску"></div>
@@ -319,10 +329,11 @@
             }, 750);
         }
 
-        // === 2. ЭЛЕГАНТНЫЙ НЕОНОВЫЙ ШЛЕЙФ МЫШИ ===
+        // === 2. ХАКЕРСКИЙ ШЛЕЙФ МЫШИ (0/1 и глифы) ===
         const canvas = document.getElementById('cursor-canvas');
         const ctx = canvas.getContext('2d');
         let particles = [];
+        const glitchChars = ['0', '1', 'H', 'A', 'C', 'K', 'X', '#', '>', '_'];
 
         function resizeCanvas() {
             canvas.width = window.innerWidth;
@@ -332,14 +343,15 @@
         resizeCanvas();
 
         window.addEventListener('mousemove', (e) => {
-            for (let i = 0; i < 2; i++) {
+            if (Math.random() > 0.3) {
                 particles.push({
                     x: e.clientX,
                     y: e.clientY,
-                    size: Math.random() * 4 + 2,
-                    vx: (Math.random() - 0.5) * 1.2,
-                    vy: (Math.random() - 0.5) * 1.2 - 0.5,
-                    color: Math.random() > 0.5 ? '#00f2fe' : '#7928ca',
+                    char: glitchChars[Math.floor(Math.random() * glitchChars.length)],
+                    size: Math.floor(Math.random() * 8) + 12,
+                    vx: (Math.random() - 0.5) * 1.5,
+                    vy: (Math.random() - 0.5) * 1.5 - 1.5,
+                    color: Math.random() > 0.4 ? '#00f2fe' : '#00ff66',
                     alpha: 1
                 });
             }
@@ -351,22 +363,20 @@
                 let p = particles[i];
                 p.x += p.vx;
                 p.y += p.vy;
-                p.alpha -= 0.025;
-                p.size *= 0.96;
+                p.alpha -= 0.035;
 
-                if (p.alpha <= 0 || p.size <= 0.2) {
+                if (p.alpha <= 0) {
                     particles.splice(i, 1);
                     continue;
                 }
 
                 ctx.save();
                 ctx.globalAlpha = p.alpha;
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.font = `${p.size}px 'JetBrains Mono', monospace`;
                 ctx.fillStyle = p.color;
-                ctx.shadowBlur = 10;
+                ctx.shadowBlur = 8;
                 ctx.shadowColor = p.color;
-                ctx.fill();
+                ctx.fillText(p.char, p.x, p.y);
                 ctx.restore();
             }
             requestAnimationFrame(renderParticles);
@@ -389,10 +399,38 @@
         let isDrawingThread = false, threadStartCardId = null, tempThread = null;
         let tempModalImageData = null;
 
+        // --- Управление хранилищем (localStorage) ---
+        function getStoredData() {
+            try {
+                return JSON.parse(localStorage.getItem('family_room_corkboard_v1')) || { cards: [], links: [] };
+            } catch (e) {
+                return { cards: [], links: [] };
+            }
+        }
+
+        function setStoredData(data) {
+            localStorage.setItem('family_room_corkboard_v1', JSON.stringify(data));
+        }
+
         function initBoard() {
             workspace.style.transform = `translate(${panX}px, ${panY}px)`;
-            if (cards.length === 0) {
-                createCardInstance("Алексей Смирнов", "Старший брат", "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=300&q=80");
+            
+            // Загрузка данных из хранилища
+            const stored = getStoredData();
+            
+            // Доска пустая. Никакихdefault Смирновых.
+            if (stored.cards.length === 0) {
+                // Доска пуста. Код не добавляет default карточку.
+            } else {
+                // Загружаем карточки
+                stored.cards.forEach(c => {
+                    if (c.id > cardCounter) cardCounter = c.id;
+                    recreateCardInstance(c);
+                });
+                
+                // Загружаем связи
+                links = stored.links;
+                renderThreads();
             }
         }
 
@@ -416,6 +454,8 @@
                 const y = e.clientY - panY - activeCard.offsetY;
                 activeCard.el.style.left = `${x}px`;
                 activeCard.el.style.top = `${y}px`;
+                activeCard.data.left = x;
+                activeCard.data.top = y;
                 updateThreads();
             }
 
@@ -435,8 +475,13 @@
 
         window.addEventListener('mouseup', () => {
             isPanning = false;
-            isDraggingCard = false;
-            activeCard = null;
+            
+            if (isDraggingCard) {
+                isDraggingCard = false;
+                activeCard = null;
+                // Сохраняем позиции после перемещения
+                updateLocalStorageData();
+            }
 
             if (isDrawingThread) {
                 isDrawingThread = false;
@@ -444,6 +489,14 @@
                 tempThread = null;
             }
         });
+
+        // Функция обновления localStorage
+        function updateLocalStorageData() {
+            setStoredData({
+                cards: cards.map(c => c.data),
+                links: links
+            });
+        }
 
         // === 4. ОКНО СОЗДАНИЯ КАРТОЧКИ ===
         function openAddModal() {
@@ -477,51 +530,68 @@
 
         function confirmAddCard() {
             const name = document.getElementById('modal-name').value.trim() || "Без имени";
-            const role = document.getElementById('modal-role').value.trim() || "Член семьи";
+            const role = document.getElementById('modal-role').value.trim() || "Семья";
             const desc = document.getElementById('modal-desc').value.trim() || "";
-            const imgUrl = tempModalImageData || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80";
+            // Default image
+            const imgUrl = tempModalImageData || "https://images.unsplash.com/photo-1518173946687-a4c8892bbd9f?auto=format&fit=crop&w=300&q=80";
 
             createCardInstance(name, role, desc, imgUrl);
             closeAddModal();
         }
 
+        // --- Создание экземпляров карточек ---
         function createCardInstance(name, role, desc, imgSrc) {
             cardCounter++;
             const id = cardCounter;
 
-            const card = document.createElement('div');
-            card.className = 'card';
-            card.dataset.id = id;
-
             const x = -panX + window.innerWidth / 2 - 135 + (Math.random() * 80 - 40);
             const y = -panY + window.innerHeight / 2 - 150 + (Math.random() * 80 - 40);
-            card.style.left = `${x}px`;
-            card.style.top = `${y}px`;
+
+            const cardData = {
+                id, name, role, desc, imgSrc, left: x, top: y
+            };
+
+            renderCardInstance(cardData);
+            
+            updateLocalStorageData();
+        }
+
+        function recreateCardInstance(data) {
+            renderCardInstance(data);
+        }
+
+        function renderCardInstance(data) {
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.dataset.id = data.id;
+            card.style.left = `${data.left}px`;
+            card.style.top = `${data.top}px`;
 
             card.innerHTML = `
                 <div class="card-header">
-                    <span class="card-tag">${role || 'Семья'}</span>
-                    <button class="delete-card" onclick="deleteCard(${id})">✕</button>
+                    <span class="card-tag">${data.role || 'Семья'}</span>
+                    <button class="delete-card" onclick="deleteCard(${data.id})">✕</button>
                 </div>
-                <div class="card-name">${name}</div>
+                <div class="card-name">${data.name}</div>
                 <div class="card-img-container">
-                    <img src="${imgSrc}">
+                    <img src="${data.imgSrc}">
                 </div>
-                <textarea class="card-notes" rows="3" placeholder="Заметки...">${desc}</textarea>
+                <textarea class="card-notes" rows="3" placeholder="Заметки...">${data.desc}</textarea>
                 <div class="connector" title="Соединить нитью"></div>
             `;
 
-            attachCardEvents(card, id);
+            attachCardEvents(card, data.id, data);
             workspace.appendChild(card);
-            cards.push({ id, el: card });
+            cards.push({ id: data.id, el: card, data: data });
         }
 
-        function attachCardEvents(card, id) {
+        function attachCardEvents(card, id, dataObj) {
             card.addEventListener('mousedown', (e) => {
                 if (['TEXTAREA', 'BUTTON'].includes(e.target.tagName) || e.target.classList.contains('connector')) return;
                 isDraggingCard = true;
                 activeCard = {
                     el: card,
+                    data: dataObj,
                     offsetX: e.clientX - card.getBoundingClientRect().left,
                     offsetY: e.clientY - card.getBoundingClientRect().top
                 };
@@ -545,6 +615,7 @@
                     if (!links.some(l => (l.from === threadStartCardId && l.to === id) || (l.from === id && l.to === threadStartCardId))) {
                         links.push({ from: threadStartCardId, to: id });
                         renderThreads();
+                        updateLocalStorageData(); // Сохраняем связи
                     }
                 }
             });
@@ -557,6 +628,7 @@
                 cards = cards.filter(c => c.id !== id);
                 links = links.filter(l => l.from !== id && l.to !== id);
                 renderThreads();
+                updateLocalStorageData(); // Сохраняем изменения после удаления
             }
         }
 
@@ -572,6 +644,7 @@
                 path.addEventListener('click', () => {
                     links.splice(index, 1);
                     renderThreads();
+                    updateLocalStorageData(); // Сохраняем изменения после удаления связи
                 });
 
                 svgLayer.appendChild(path);
