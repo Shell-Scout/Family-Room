@@ -4,413 +4,479 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="author" content="fox">
-    <title>Семейный Архив • Комната</title>
+    <title>Семейный Архив • Доска Расследований</title>
     <link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-wall: #e3d5c8;
-            --desk-color: #8b5a2b;
-            --board-frame: #5c3a21;
+            --bg-canvas: #1e1e24;
             --cork-color: #d4a373;
             --card-bg: #fffcf2;
-            --text-main: #2b2b2b;
-            --thread-color: #d90429;
+            --text-main: #1a1a1a;
+            --thread-color: #e63946;
+            --border-color: #444;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
         
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #111;
+            background-color: var(--bg-canvas);
+            color: #fff;
             overflow: hidden;
             width: 100vw;
             height: 100vh;
         }
 
-        /* ЭКРАН АВТОРИЗАЦИИ */
+        /* АВТОРИЗАЦИЯ */
         #auth-screen {
-            position: fixed; inset: 0; background: #0a0a0a;
+            position: fixed; inset: 0; background: #0c0d0e;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            z-index: 10000; color: white;
+            z-index: 10000;
         }
         .auth-box {
-            background: #1a1a1a; padding: 30px; border-radius: 8px; border: 1px solid #333; text-align: center;
+            background: #181a1b; padding: 35px; border-radius: 12px; border: 1px solid #333; text-align: center;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8); max-width: 380px; width: 100%;
         }
+        .auth-box h2 { font-family: 'Special Elite', cursive; margin-bottom: 15px; letter-spacing: 1px; }
         .auth-box input {
-            padding: 10px; background: #222; border: 1px solid #555; color: white; font-size: 1.5rem; letter-spacing: 5px; text-align: center; margin: 15px 0; border-radius: 4px;
+            width: 100%; padding: 12px; background: #222527; border: 1px solid #444; color: #fff;
+            font-size: 1.5rem; letter-spacing: 6px; text-align: center; margin: 15px 0; border-radius: 6px; outline: none;
         }
         .auth-box button {
-            background: #d4a373; color: #000; border: none; padding: 10px 20px; font-weight: bold; cursor: pointer; border-radius: 4px;
+            width: 100%; background: #238636; color: white; border: none; padding: 12px; font-size: 1rem;
+            font-weight: 600; cursor: pointer; border-radius: 6px; transition: background 0.2s;
         }
+        .auth-box button:hover { background: #2ea043; }
 
-        /* СЦЕНА "КОМНАТА" */
-        #room-scene {
-            position: absolute; inset: 0; background: var(--bg-wall);
-            display: flex; flex-direction: column; z-index: 10; transition: opacity 0.5s;
+        /* ВЕРХНЯЯ ПАНЕЛЬ ИНСТРУМЕНТОВ */
+        #toolbar {
+            position: fixed; top: 15px; left: 50%; transform: translateX(-50%);
+            background: rgba(24, 26, 27, 0.9); backdrop-filter: blur(8px);
+            border: 1px solid rgba(255,255,255,0.1); padding: 8px 18px; border-radius: 30px;
+            display: flex; gap: 12px; align-items: center; z-index: 1000; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
-        .window {
-            position: absolute; top: 10%; left: 10%; width: 300px; height: 300px;
-            border: 8px solid #333; background: #1a2530; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 8px;
-            box-shadow: inset 0 0 50px rgba(0,0,0,0.8); overflow: hidden;
+        .tool-btn {
+            background: #2a2d30; color: #fff; border: 1px solid #444; padding: 8px 16px;
+            border-radius: 20px; font-size: 0.85rem; font-weight: 500; cursor: pointer; display: flex;
+            align-items: center; gap: 6px; transition: all 0.2s;
         }
-        .window-pane { background: rgba(255,255,255,0.05); position: relative; overflow: hidden; }
-        
-        /* Дождь в окне */
-        .drop { position: absolute; background: rgba(255,255,255,0.4); width: 1px; height: 15px; animation: rain linear infinite; }
-        @keyframes rain { 0% { transform: translateY(-20px); } 100% { transform: translateY(150px); } }
+        .tool-btn:hover { background: #3a3d40; border-color: #666; }
+        .tool-btn.primary { background: #238636; border-color: #2ea043; }
+        .tool-btn.primary:hover { background: #2ea043; }
 
-        .items-on-desk {
-            position: absolute; top: 32%; left: 12%; display: flex; align-items: flex-end; gap: 20px; z-index: 2;
-        }
-        .cat { font-size: 80px; cursor: pointer; transition: transform 0.2s; }
-        .cat:hover { transform: scale(1.1); }
-        .plant { font-size: 90px; }
+        /* ИНТЕРАКТИВНЫЙ ХОЛСТ */
+        #viewport { width: 100vw; height: 100vh; overflow: hidden; position: relative; cursor: grab; }
+        #viewport:active { cursor: grabbing; }
 
-        .desk {
-            position: absolute; bottom: 0; width: 100%; height: 40%; background: var(--desk-color);
-            border-top: 15px solid #6b4423; z-index: 1; box-shadow: inset 0 20px 50px rgba(0,0,0,0.3);
-        }
-
-        .board-trigger {
-            position: absolute; right: 10%; top: 20%; width: 350px; height: 250px;
-            background: var(--cork-color); border: 12px solid var(--board-frame);
-            box-shadow: 10px 10px 30px rgba(0,0,0,0.5); cursor: pointer; transition: transform 0.3s;
-            display: flex; align-items: center; justify-content: center; font-family: 'Special Elite', cursive; font-size: 24px; color: #4a2e15;
-            z-index: 2;
-        }
-        .board-trigger:hover { transform: scale(1.05) rotate(-2deg); }
-
-        /* ИНТЕРАКТИВНАЯ ДОСКА */
-        #board-ui {
-            position: fixed; inset: 0; background: #111; z-index: 100; display: none; overflow: hidden;
-        }
         #workspace {
-            position: absolute; width: 5000px; height: 5000px; background: var(--cork-color);
-            background-image: radial-gradient(#9e7b56 2px, transparent 2px);
-            background-size: 30px 30px;
-            cursor: grab;
+            position: absolute; width: 8000px; height: 8000px;
+            background-color: #1a1c1e;
+            background-image: radial-gradient(rgba(255,255,255,0.1) 1px, transparent 1px);
+            background-size: 28px 28px;
             transform-origin: 0 0;
         }
-        #workspace:active { cursor: grabbing; }
-        
-        .close-board {
-            position: absolute; top: 20px; right: 20px; background: #fff; border: none; padding: 10px 20px;
-            font-weight: bold; cursor: pointer; z-index: 1000; border-radius: 4px; box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-        }
-        .add-card-btn {
-            position: absolute; top: 20px; right: 150px; background: #238636; color: white; border: none; padding: 10px 20px;
-            font-weight: bold; cursor: pointer; z-index: 1000; border-radius: 4px; box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-        }
 
-        /* Карточки */
+        /* СЛОЙ НИТОК */
+        #svg-layer { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2; }
+        path.thread {
+            stroke: var(--thread-color); stroke-width: 3.5; fill: none; stroke-linecap: round;
+            filter: drop-shadow(0px 4px 6px rgba(0,0,0,0.6)); pointer-events: stroke; cursor: pointer;
+        }
+        path.thread:hover { stroke-width: 6; stroke: #ff4d5a; }
+
+        /* КАРТОЧКИ УЛИК */
         .card {
-            position: absolute; background: var(--card-bg); width: 220px; padding: 15px;
-            box-shadow: 2px 5px 15px rgba(0,0,0,0.3); font-family: 'Inter', sans-serif;
-            border: 1px solid #ccc; cursor: grab; z-index: 10;
+            position: absolute; background: var(--card-bg); color: var(--text-main);
+            width: 240px; border-radius: 4px; padding: 12px; box-shadow: 0 12px 30px rgba(0,0,0,0.5);
+            border: 1px solid #d0d0d0; cursor: grab; z-index: 10; transition: box-shadow 0.2s;
         }
-        .card:active { cursor: grabbing; }
-        .card::before {
-            content: ''; position: absolute; top: -6px; left: 50%; transform: translateX(-50%);
-            width: 14px; height: 14px; background: red; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.5); z-index: 11;
-        }
-        .card textarea, .card input {
-            width: 100%; border: none; background: transparent; font-family: inherit; color: var(--text-main);
-            outline: none; resize: none;
-        }
-        .card input { font-weight: bold; font-size: 16px; margin-bottom: 5px; border-bottom: 1px solid #ddd; }
+        .card:active { cursor: grabbing; z-index: 100; box-shadow: 0 20px 40px rgba(0,0,0,0.7); }
         
-        /* Точки для ниток */
-        .pin-connector {
-            position: absolute; width: 16px; height: 16px; background: var(--thread-color); border-radius: 50%;
-            bottom: -8px; left: 50%; transform: translateX(-50%); cursor: crosshair;
-            border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.4); z-index: 12;
-            transition: transform 0.2s;
+        /* Кнопка удаления и красная кнопка-булавка */
+        .card-pin {
+            position: absolute; top: -8px; left: 50%; transform: translateX(-50%);
+            width: 16px; height: 16px; background: #d90429; border-radius: 50%;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.5); z-index: 12;
         }
-        .pin-connector:hover { transform: translateX(-50%) scale(1.3); }
-
-        /* SVG для ниток */
-        #svg-layer {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5;
+        .delete-card {
+            position: absolute; top: 6px; right: 8px; background: none; border: none;
+            color: #999; font-size: 14px; cursor: pointer; font-weight: bold;
         }
-        path.thread { stroke: var(--thread-color); stroke-width: 4; fill: none; stroke-linecap: round; filter: drop-shadow(2px 4px 2px rgba(0,0,0,0.3)); }
+        .delete-card:hover { color: #d90429; }
 
+        .card input.card-title {
+            width: 85%; border: none; background: transparent; font-family: 'Special Elite', cursive;
+            font-size: 1.05rem; font-weight: bold; color: #111; margin-bottom: 8px; outline: none;
+        }
+        .card textarea.card-text {
+            width: 100%; border: none; background: transparent; font-family: 'Inter', sans-serif;
+            font-size: 0.85rem; color: #333; resize: none; outline: none; line-height: 1.3;
+        }
+
+        /* Загрузка изображений на карточку */
+        .card-img-container {
+            width: 100%; height: 150px; background: #e9ecef; border-radius: 4px;
+            margin-bottom: 8px; overflow: hidden; position: relative; display: flex;
+            align-items: center; justify-content: center; border: 1px dashed #ccc;
+        }
+        .card-img-container img { width: 100%; height: 100%; object-fit: cover; }
+        .change-img-btn {
+            position: absolute; bottom: 5px; right: 5px; background: rgba(0,0,0,0.7); color: #fff;
+            border: none; padding: 4px 8px; font-size: 0.7rem; border-radius: 3px; cursor: pointer; opacity: 0; transition: opacity 0.2s;
+        }
+        .card-img-container:hover .change-img-btn { opacity: 1; }
+
+        /* Пин соединитель нити */
+        .connector {
+            position: absolute; bottom: -9px; left: 50%; transform: translateX(-50%);
+            width: 16px; height: 16px; background: var(--thread-color); border-radius: 50%;
+            border: 2px solid #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.4); cursor: crosshair; z-index: 15;
+            transition: transform 0.15s;
+        }
+        .connector:hover { transform: translateX(-50%) scale(1.3); }
+
+        input[type="file"] { display: none; }
     </style>
 </head>
 <body>
 
-    <!-- Экран входа -->
+    <!-- ЭКРАН АВТОРИЗАЦИИ -->
     <div id="auth-screen">
         <div class="auth-box">
             <h2>СЕКРЕТНЫЙ АРХИВ</h2>
-            <input type="password" id="pass-input" placeholder="••••">
-            <br>
-            <button onclick="login()">Войти в комнату</button>
-            <div id="error-msg" style="color: #ff4444; margin-top: 10px; min-height: 20px;"></div>
+            <p style="font-size: 0.85rem; color: #888;">Введите пароль доступа:</p>
+            <input type="password" id="pass-input" placeholder="••••" maxlength="10">
+            <button onclick="login()">Открыть доску</button>
+            <div id="error-msg" style="color: #e63946; font-size: 0.8rem; margin-top: 10px; min-height: 15px;"></div>
         </div>
     </div>
 
-    <!-- Комната (основной вид) -->
-    <div id="room-scene">
-        <div class="window" id="window-panes">
-            <div class="window-pane"></div><div class="window-pane"></div>
-            <div class="window-pane"></div><div class="window-pane"></div>
-        </div>
-        
-        <div class="items-on-desk">
-            <div class="cat" onclick="alert('Мяу! *кот мурчит, охраняя архив*')">🐈</div>
-            <div class="plant">🪴</div>
-        </div>
-
-        <div class="desk"></div>
-
-        <div class="board-trigger" onclick="openBoard()">
-            СЕМЕЙНОЕ ДЕЛО<br>▶ ОТКРЫТЬ
-        </div>
+    <!-- ВЕРХНЕЕ МЕНЮ -->
+    <div id="toolbar">
+        <button class="tool-btn primary" onclick="addTextCard()">+ Заметка</button>
+        <button class="tool-btn primary" onclick="triggerImageUpload()">+ Картинка</button>
+        <button class="tool-btn" id="rain-btn" onclick="toggleRain()">🌧️ Звук дождя</button>
     </div>
 
-    <!-- Интерактивная доска -->
-    <div id="board-ui">
-        <button class="close-board" onclick="closeBoard()">Вернуться в комнату</button>
-        <button class="add-card-btn" onclick="addCard()">+ Новая улика</button>
-        
+    <!-- ПОЛЕ ДОСКИ -->
+    <div id="viewport">
         <div id="workspace">
             <svg id="svg-layer"></svg>
-            <!-- Карточки будут здесь -->
         </div>
     </div>
 
+    <input type="file" id="global-file-input" accept="image/*">
+
     <script>
-        // === 1. АВТОРИЗАЦИЯ (Скрытый пароль) ===
-        // btoa('6202') = 'NjIwMg==' -> мы переворачиваем введенный пароль и кодируем в base64. 
-        // Таким образом сам код '2026' в коде нигде не написан.
-        function login() {
+        // === 1. ЗАЩИТА SHA-256 (Пароль 2026) ===
+        const TARGET_HASH = "21a7337a6b47c94b62f8e1329a1b80c355f309a4d8c838a1921356f9172e2764"; // SHA-256 от "2026"
+
+        async function sha256(str) {
+            const buffer = new TextEncoder().encode(str);
+            const hash = await crypto.subtle.digest('SHA-256', buffer);
+            return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        async function login() {
             const input = document.getElementById('pass-input').value;
-            const hashed = btoa(input.split('').reverse().join('')); 
+            const inputHash = await sha256(input);
             
-            if (hashed === "NjIwMg==") {
-                document.getElementById('auth-screen').style.opacity = '0';
-                setTimeout(() => document.getElementById('auth-screen').style.display = 'none', 500);
-                startRainAudio();
+            if (inputHash === TARGET_HASH) {
+                document.getElementById('auth-screen').style.display = 'none';
+                initBoard();
             } else {
-                document.getElementById('error-msg').innerText = "Неверный код!";
+                document.getElementById('error-msg').innerText = "Неверный код доступа!";
                 document.getElementById('pass-input').value = "";
             }
         }
 
-        // === 2. ЗВУК ДОЖДЯ (Процедурный Web Audio API) ===
-        let audioCtx;
-        function startRainAudio() {
-            if (audioCtx) return; // Чтобы не запустить дважды
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            const bufferSize = audioCtx.sampleRate * 2;
-            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-            const output = buffer.getChannelData(0);
-            for (let i = 0; i < bufferSize; i++) {
-                output[i] = Math.random() * 2 - 1; // Белый шум
-            }
-            const noise = audioCtx.createBufferSource();
-            noise.buffer = buffer;
-            noise.loop = true;
-            
-            // Фильтр низких частот (эффект глухого дождя за окном)
-            const filter = audioCtx.createBiquadFilter();
-            filter.type = 'lowpass';
-            filter.frequency.value = 400; 
-            
-            noise.connect(filter);
-            filter.connect(audioCtx.destination);
-            noise.start();
-        }
-
-        // Визуальный дождь в окне
-        const panes = document.querySelectorAll('.window-pane');
-        panes.forEach(pane => {
-            for(let i=0; i<10; i++) {
-                let drop = document.createElement('div');
-                drop.className = 'drop';
-                drop.style.left = Math.random() * 100 + '%';
-                drop.style.animationDuration = (0.5 + Math.random()) + 's';
-                drop.style.animationDelay = Math.random() + 's';
-                pane.appendChild(drop);
-            }
+        document.getElementById('pass-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') login();
         });
 
-        // === 3. ЛОГИКА КОМНАТЫ -> ДОСКИ ===
-        function openBoard() {
-            document.getElementById('board-ui').style.display = 'block';
-            // Центрируем камеру при первом открытии
-            workspace.style.transform = `translate(-2000px, -2000px)`;
-            panX = -2000; panY = -2000;
-        }
-        function closeBoard() {
-            document.getElementById('board-ui').style.display = 'none';
+        // === 2. ЗВУКОВОР ОБРАБОТЧИК ДОЖДЯ (Web Audio API) ===
+        let audioCtx, noiseNode, isRainPlaying = false;
+        function toggleRain() {
+            const btn = document.getElementById('rain-btn');
+            if (!isRainPlaying) {
+                if (!audioCtx) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    const bufferSize = audioCtx.sampleRate * 2;
+                    const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+                    const output = buffer.getChannelData(0);
+                    for (let i = 0; i < bufferSize; i++) output[i] = Math.random() * 2 - 1;
+                    
+                    noiseNode = audioCtx.createBufferSource();
+                    noiseNode.buffer = buffer;
+                    noiseNode.loop = true;
+                    
+                    const filter = audioCtx.createBiquadFilter();
+                    filter.type = 'lowpass';
+                    filter.frequency.value = 450;
+                    
+                    noiseNode.connect(filter);
+                    filter.connect(audioCtx.destination);
+                    noiseNode.start();
+                } else {
+                    audioCtx.resume();
+                }
+                isRainPlaying = true;
+                btn.style.borderColor = '#58a6ff';
+                btn.innerText = '🔊 Дождь включен';
+            } else {
+                audioCtx.suspend();
+                isRainPlaying = false;
+                btn.style.borderColor = '#444';
+                btn.innerText = '🌧️ Звук дождя';
+            }
         }
 
-        // === 4. ФИЗИКА ДОСКИ (Перемещение камеры и карточек, нитки) ===
+        // === 3. ДВИЖОК ДОСКИ ===
+        const viewport = document.getElementById('viewport');
         const workspace = document.getElementById('workspace');
         const svgLayer = document.getElementById('svg-layer');
-        let isPanning = false, startX, startY, panX = 0, panY = 0;
-        
-        let isDraggingCard = false;
-        let activeCard = null;
-        
-        let isDrawingLine = false;
-        let lineStartCard = null;
-        let tempLine = null;
-        
-        let cardsData = [];
-        let linksData = [];
-        let cardIdCounter = 0;
+        const fileInput = document.getElementById('global-file-input');
 
-        // Перемещение поля (камеры)
-        workspace.addEventListener('mousedown', (e) => {
-            if (e.target === workspace) {
+        let panX = -3500, panY = -3500;
+        let isPanning = false, startX, startY;
+        
+        let cards = [];
+        let links = [];
+        let cardCounter = 0;
+
+        let isDraggingCard = false, activeCard = null;
+        let isDrawingThread = false, threadStartCardId = null, tempThread = null;
+        let pendingImgCardId = null;
+
+        function initBoard() {
+            workspace.style.transform = `translate(${panX}px, ${panY}px)`;
+            
+            // Начальная карточка-инструкция
+            addTextCard("СЕМЕЙНОЕ ДЕЛО №2026", "Добро пожаловать на доску расследований.\n\n• Перетаскивайте карточки.\n• Нажмите '+ Картинка' для загрузки фото.\n• Тяните за КРАСНУЮ ТОЧКУ снизу карточки, чтобы протянуть нить к другой уликe.");
+        }
+
+        // Панорамирование поля
+        viewport.addEventListener('mousedown', (e) => {
+            if (e.target === viewport || e.target === workspace || e.target === svgLayer) {
                 isPanning = true;
                 startX = e.clientX - panX;
                 startY = e.clientY - panY;
             }
         });
-        
+
         window.addEventListener('mousemove', (e) => {
-            // Двигаем поле
             if (isPanning) {
                 panX = e.clientX - startX;
                 panY = e.clientY - startY;
                 workspace.style.transform = `translate(${panX}px, ${panY}px)`;
             }
-            // Двигаем карточку
+
             if (isDraggingCard && activeCard) {
-                let x = e.clientX - panX - activeCard.offsetX;
-                let y = e.clientY - panY - activeCard.offsetY;
+                const x = e.clientX - panX - activeCard.offsetX;
+                const y = e.clientY - panY - activeCard.offsetY;
                 activeCard.el.style.left = `${x}px`;
                 activeCard.el.style.top = `${y}px`;
-                updateLines();
+                updateThreads();
             }
-            // Тянем нитку
-            if (isDrawingLine && tempLine) {
+
+            if (isDrawingThread && tempThread) {
                 const rect = workspace.getBoundingClientRect();
                 const mouseX = e.clientX - rect.left;
                 const mouseY = e.clientY - rect.top;
-                
-                const startRect = lineStartCard.el.getBoundingClientRect();
-                const startX = startRect.left + startRect.width/2 - rect.left;
-                const startY = startRect.top + startRect.height - 8 - rect.top;
 
-                tempLine.setAttribute('d', `M ${startX} ${startY} Q ${(startX+mouseX)/2} ${mouseY+50} ${mouseX} ${mouseY}`);
+                const startCard = cards.find(c => c.id === threadStartCardId).el;
+                const sRect = startCard.getBoundingClientRect();
+                const sx = sRect.left + sRect.width / 2 - rect.left;
+                const sy = sRect.bottom - 8 - rect.top;
+
+                tempThread.setAttribute('d', `M ${sx} ${sy} C ${sx} ${(sy + mouseY)/2}, ${mouseX} ${(sy + mouseY)/2}, ${mouseX} ${mouseY}`);
             }
         });
 
-        window.addEventListener('mouseup', (e) => {
+        window.addEventListener('mouseup', () => {
             isPanning = false;
             isDraggingCard = false;
             activeCard = null;
-            
-            if (isDrawingLine) {
-                isDrawingLine = false;
-                if (tempLine) tempLine.remove();
-                tempLine = null;
+
+            if (isDrawingThread) {
+                isDrawingThread = false;
+                if (tempThread) tempThread.remove();
+                tempThread = null;
             }
         });
 
-        // Создание новой карточки
-        function addCard() {
-            cardIdCounter++;
-            const id = cardIdCounter;
-            
+        // === 4. СОЗДАНИЕ И УПРАВЛЕНИЕ КАРТОЧКАМИ ===
+        function addTextCard(title = "Новая улика", text = "") {
+            cardCounter++;
+            const id = cardCounter;
+
             const card = document.createElement('div');
             card.className = 'card';
-            // Появляется по центру экрана
-            const x = -panX + window.innerWidth / 2 - 110;
+            card.dataset.id = id;
+
+            // Позиционирование по центру видимого экрана
+            const x = -panX + window.innerWidth / 2 - 120 + (Math.random() * 40 - 20);
+            const y = -panY + window.innerHeight / 2 - 100 + (Math.random() * 40 - 20);
+            card.style.left = `${x}px`;
+            card.style.top = `${y}px`;
+
+            card.innerHTML = `
+                <div class="card-pin"></div>
+                <button class="delete-card" onclick="deleteCard(${id})">✕</button>
+                <input type="text" class="card-title" value="${title}">
+                <textarea class="card-text" rows="4" placeholder="Введите текст...">${text}</textarea>
+                <div class="connector" title="Потяни нить к другой уликe"></div>
+            `;
+
+            attachCardEvents(card, id);
+            workspace.appendChild(card);
+            cards.push({ id, el: card });
+        }
+
+        function triggerImageUpload(cardId = null) {
+            pendingImgCardId = cardId;
+            fileInput.click();
+        }
+
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const imgUrl = event.target.result;
+                if (pendingImgCardId) {
+                    // Замена картинки в существующей карточке
+                    const imgEl = document.querySelector(`.card[data-id="${pendingImgCardId}"] .card-img-container img`);
+                    if (imgEl) imgEl.src = imgUrl;
+                } else {
+                    // Создание новой карточки с картинкой
+                    createImageCard(imgUrl);
+                }
+            };
+            reader.readAsDataURL(file);
+            fileInput.value = '';
+        });
+
+        function createImageCard(imgUrl) {
+            cardCounter++;
+            const id = cardCounter;
+
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.dataset.id = id;
+
+            const x = -panX + window.innerWidth / 2 - 120;
             const y = -panY + window.innerHeight / 2 - 100;
             card.style.left = `${x}px`;
             card.style.top = `${y}px`;
 
             card.innerHTML = `
-                <input type="text" placeholder="Заголовок">
-                <textarea rows="4" placeholder="Текст улики..."></textarea>
-                <div class="pin-connector" data-id="${id}" title="Потяни, чтобы связать"></div>
+                <div class="card-pin"></div>
+                <button class="delete-card" onclick="deleteCard(${id})">✕</button>
+                <div class="card-img-container">
+                    <img src="${imgUrl}">
+                    <button class="change-img-btn" onclick="triggerImageUpload(${id})">Заменить</button>
+                </div>
+                <input type="text" class="card-title" value="Фото-улика">
+                <textarea class="card-text" rows="2" placeholder="Заметки к фото..."></textarea>
+                <div class="connector" title="Потяни нить к другой уликe"></div>
             `;
-            
-            // Логика перемещения карточки
-            card.addEventListener('mousedown', (e) => {
-                if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA' && !e.target.classList.contains('pin-connector')) {
-                    isDraggingCard = true;
-                    activeCard = {
-                        el: card,
-                        offsetX: e.clientX - card.getBoundingClientRect().left,
-                        offsetY: e.clientY - card.getBoundingClientRect().top
-                    };
-                    // Поднимаем наверх
-                    workspace.appendChild(card);
-                }
-            });
 
-            // Логика ниток
-            const pin = card.querySelector('.pin-connector');
-            pin.addEventListener('mousedown', (e) => {
-                e.stopPropagation();
-                isDrawingLine = true;
-                lineStartCard = { id, el: card };
-                
-                tempLine = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-                tempLine.classList.add('thread');
-                svgLayer.appendChild(tempLine);
-            });
-
-            pin.addEventListener('mouseup', (e) => {
-                e.stopPropagation();
-                if (isDrawingLine && lineStartCard && lineStartCard.id !== id) {
-                    // Создаем связь
-                    linksData.push({ from: lineStartCard.id, to: id });
-                    renderLines();
-                }
-            });
-
+            attachCardEvents(card, id);
             workspace.appendChild(card);
-            cardsData.push({ id, el: card });
+            cards.push({ id, el: card });
         }
 
-        // Отрисовка всех ниток
-        function renderLines() {
-            svgLayer.innerHTML = '';
-            linksData.forEach(link => {
-                const fromCard = cardsData.find(c => c.id === link.from);
-                const toCard = cardsData.find(c => c.id === link.to);
-                if (fromCard && toCard) {
-                    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-                    path.classList.add('thread');
-                    path.dataset.from = link.from;
-                    path.dataset.to = link.to;
-                    svgLayer.appendChild(path);
+        function attachCardEvents(card, id) {
+            // Перетаскивание
+            card.addEventListener('mousedown', (e) => {
+                if (['INPUT', 'TEXTAREA', 'BUTTON'].includes(e.target.tagName) || e.target.classList.contains('connector')) return;
+                isDraggingCard = true;
+                activeCard = {
+                    el: card,
+                    offsetX: e.clientX - card.getBoundingClientRect().left,
+                    offsetY: e.clientY - card.getBoundingClientRect().top
+                };
+                workspace.appendChild(card); // На передний план
+            });
+
+            // Нити
+            const connector = card.querySelector('.connector');
+            connector.addEventListener('mousedown', (e) => {
+                e.stopPropagation();
+                isDrawingThread = true;
+                threadStartCardId = id;
+
+                tempThread = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                tempThread.classList.add('thread');
+                svgLayer.appendChild(tempThread);
+            });
+
+            connector.addEventListener('mouseup', (e) => {
+                e.stopPropagation();
+                if (isDrawingThread && threadStartCardId && threadStartCardId !== id) {
+                    // Создать связь если её ещё нет
+                    if (!links.some(l => (l.from === threadStartCardId && l.to === id) || (l.from === id && l.to === threadStartCardId))) {
+                        links.push({ from: threadStartCardId, to: id });
+                        renderThreads();
+                    }
                 }
             });
-            updateLines();
         }
 
-        // Обновление координат ниток при движении
-        function updateLines() {
+        function deleteCard(id) {
+            const cardObj = cards.find(c => c.id === id);
+            if (cardObj) {
+                cardObj.el.remove();
+                cards = cards.filter(c => c.id !== id);
+                links = links.filter(l => l.from !== id && l.to !== id);
+                renderThreads();
+            }
+        }
+
+        // === 5. ОТРИСОВКА И ОБНОВЛЕНИЕ НИТЕЙ ===
+        function renderThreads() {
+            svgLayer.innerHTML = '';
+            links.forEach((link, index) => {
+                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                path.classList.add('thread');
+                path.dataset.index = index;
+                path.title = "Кликните, чтобы удалить нить";
+                
+                path.addEventListener('click', () => {
+                    links.splice(index, 1);
+                    renderThreads();
+                });
+
+                svgLayer.appendChild(path);
+            });
+            updateThreads();
+        }
+
+        function updateThreads() {
             const rect = workspace.getBoundingClientRect();
-            
-            document.querySelectorAll('path.thread[data-from]').forEach(path => {
-                const fromId = parseInt(path.dataset.from);
-                const toId = parseInt(path.dataset.to);
-                
-                const fromCard = cardsData.find(c => c.id === fromId).el;
-                const toCard = cardsData.find(c => c.id === toId).el;
 
-                const fRect = fromCard.getBoundingClientRect();
-                const tRect = toCard.getBoundingClientRect();
+            document.querySelectorAll('path.thread[data-index]').forEach(path => {
+                const index = parseInt(path.dataset.index);
+                const link = links[index];
+                if (!link) return;
 
-                // Координаты нижнего пина первой карточки
-                const x1 = fRect.left + fRect.width/2 - rect.left;
-                const y1 = fRect.top + fRect.height - 8 - rect.top;
-                
-                // Координаты верхнего центра второй карточки
-                const x2 = tRect.left + tRect.width/2 - rect.left;
-                const y2 = tRect.top - rect.top;
+                const c1 = cards.find(c => c.id === link.from);
+                const c2 = cards.find(c => c.id === link.to);
+                if (!c1 || !c2) return;
 
-                // Рисуем красивую изогнутую кривую (Q)
-                path.setAttribute('d', `M ${x1} ${y1} Q ${(x1+x2)/2} ${Math.max(y1, y2)+50} ${x2} ${y2}`);
+                const r1 = c1.el.getBoundingClientRect();
+                const r2 = c2.el.getBoundingClientRect();
+
+                const x1 = r1.left + r1.width / 2 - rect.left;
+                const y1 = r1.bottom - 8 - rect.top;
+
+                const x2 = r2.left + r2.width / 2 - rect.left;
+                const y2 = r2.top + 8 - rect.top;
+
+                // Отрисовка сглаженной Безье-кривой
+                path.setAttribute('d', `M ${x1} ${y1} C ${x1} ${(y1 + y2)/2}, ${x2} ${(y1 + y2)/2}, ${x2} ${y2}`);
             });
         }
     </script>
